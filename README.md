@@ -3,7 +3,7 @@ As a first step, this document is under governance review. When the review compl
 # clean-genes overview
 
 ## Project goal
-To automatically clean up a gene alignment by trimming to ORF and identifying and/or removing problematic sequences. Basically an alignment normalization tool that expects genes as inputs and could have specific value for Influenza genes. This is intended to be a Rust crate designed to do a lot of work as quickly as possible.
+To automatically clean up a gene alignment by trimming to open reading frame (ORF) and identifying and/or removing problematic sequences. Basically an alignment normalization tool that expects genes as inputs and could have specific value for Influenza genes. This is intended to be a Rust crate designed to do a lot of work as quickly as possible.
 
 ## Project title
 current proposal: clean-genes
