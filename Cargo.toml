@@ -1,0 +1,8 @@
+[package]
+name = "clean-genes"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+ansi_term = "0.12.1"
+clap = { version = "4.5.23", features = ["derive"] }
