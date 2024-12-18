@@ -57,8 +57,34 @@ fn validate_modules(module: &str) -> Result<String, String> {
     if module.is_empty() {
         Err(String::from("Module name cannot be empty"))
     } else if !["TrimToORF", "placeholder"].contains(&module) {
-        Err(format!("'{}' not a known module", module))
+        Err(format!("'{}' not a known module", module))
     } else {
         Ok(module.to_string())
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn good_filename() {
+        let test_name = "../test_data/a_ha_h3_raw_500.fna";
+        let result = validate_filename(test_name);
+        assert_eq!(result, Ok("../test_data/a_ha_h3_raw_500.fna".to_string()));
+    }
+
+    #[test]
+    fn bad_filename() {
+        let test_name = "notreal.fna";
+        let result = validate_filename(test_name);
+        assert_eq!(result, Err(String::from("Filename cannot be empty")));
+    }
+
+    #[test]
+    fn no_filename() {
+        let test_name = "";
+        let result = validate_filename(test_name);
+        assert_eq!(result, Err(String::from("Filename cannot be empty")));
     }
 }
