@@ -90,4 +90,28 @@ mod test {
         let result = validate_filename(test_name);
         assert_eq!(result, Err(String::from("Filename cannot be empty")));
     }
+
+    #[test]
+    fn good_module() {
+        let test_module = "TrimToORF";
+        let result = validate_modules(test_module);
+        assert_eq!(result, Ok(test_module.to_string()));
+    }
+
+    #[test]
+    fn bad_module() {
+        let test_module = "NotAModule";
+        let result = validate_modules(test_module);
+        assert_eq!(
+            result,
+            Err(format!("'{}' not a known module", test_module))
+        );
+    }
+
+    #[test]
+    fn no_module() {
+        let test_module = "";
+        let result = validate_modules(test_module);
+        assert_eq!(result, Err(String::from("Module name cannot be empty")));
+    }
 }
