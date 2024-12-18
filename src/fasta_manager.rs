@@ -1,4 +1,4 @@
-use std::{error::Error, fs};
+use std::{error::Error, fmt, fs};
 
 pub(crate) struct Fasta {
     filename: String,
@@ -15,6 +15,21 @@ impl Fasta {
 
     pub(crate) fn add(&mut self, new_entry: FastaEntry) {
         self.data.push(new_entry);
+    }
+}
+
+impl fmt::Display for Fasta {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        writeln!(f, "{}", self.filename)
+    }
+}
+
+impl fmt::Debug for Fasta {
+    fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
+        fmt.debug_struct("Fasta")
+            .field("filename", &self.filename)
+            .field("data", &format_args!("{} sequences", &self.data.len()))
+            .finish()
     }
 }
 
@@ -54,4 +69,15 @@ pub(crate) fn open_fasta(inp_fasta_name: &str) -> Result<Fasta, Box<dyn Error>> 
     this_fasta.add(this_entry);
 
     Ok(this_fasta)
+}
+
+mod test {
+    use super::*;
+
+    #[test]
+    fn test_fasta_open() {
+        let fasta_name = "test_data/a_ha_h3_raw_500.fna";
+        let fasta = open_fasta(fasta_name);
+        println!("{:#?}", fasta);
+    }
 }
