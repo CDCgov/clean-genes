@@ -35,6 +35,14 @@ impl Config {
     pub(crate) fn get_module(&self) -> &str {
         &self.module
     }
+
+    pub(crate) fn get_inp_fasta(&self) -> &str {
+        &self.inp_fasta
+    }
+
+    pub(crate) fn get_out_fasta(&self) -> &str {
+        &self.out_fasta
+    }
 }
 
 fn validate_filename(name: &str) -> Result<String, String> {
