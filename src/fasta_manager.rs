@@ -16,6 +16,10 @@ impl Fasta {
     pub(crate) fn add(&mut self, new_entry: FastaEntry) {
         self.data.push(new_entry);
     }
+
+    pub(crate) fn get_num_entries(&self) -> usize {
+        self.data.len()
+    }
 }
 
 impl fmt::Display for Fasta {
@@ -71,13 +75,15 @@ pub(crate) fn open_fasta(inp_fasta_name: &str) -> Result<Fasta, Box<dyn Error>> 
     Ok(this_fasta)
 }
 
+#[allow(unused_imports)]
 mod test {
     use super::*;
 
     #[test]
     fn test_fasta_open() {
         let fasta_name = "test_data/a_ha_h3_raw_500.fna";
-        let fasta = open_fasta(fasta_name);
-        println!("{:#?}", fasta);
+        let fasta = open_fasta(fasta_name).unwrap();
+        let num_entries = fasta.get_num_entries();
+        assert_eq!(num_entries, 17);
     }
 }
