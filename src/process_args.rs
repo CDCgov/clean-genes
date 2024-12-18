@@ -1,4 +1,5 @@
 use clap::Parser;
+use std::path::Path;
 
 #[derive(Parser, Default, Debug)]
 #[command(
@@ -48,6 +49,8 @@ impl Config {
 fn validate_filename(name: &str) -> Result<String, String> {
     if name.is_empty() {
         Err(String::from("Filename cannot be empty"))
+    } else if !Path::new(name).exists() {
+        Err(String::from("Filename does not exist"))
     } else {
         Ok(name.to_string())
     }
@@ -69,16 +72,16 @@ mod test {
 
     #[test]
     fn good_filename() {
-        let test_name = "../test_data/a_ha_h3_raw_500.fna";
+        let test_name = "test_data/a_ha_h3_raw_500.fna";
         let result = validate_filename(test_name);
-        assert_eq!(result, Ok("../test_data/a_ha_h3_raw_500.fna".to_string()));
+        assert_eq!(result, Ok("test_data/a_ha_h3_raw_500.fna".to_string()));
     }
 
     #[test]
     fn bad_filename() {
         let test_name = "notreal.fna";
         let result = validate_filename(test_name);
-        assert_eq!(result, Err(String::from("Filename cannot be empty")));
+        assert_eq!(result, Err(String::from("Filename does not exist")));
     }
 
     #[test]
