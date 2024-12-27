@@ -13,10 +13,12 @@ pub(super) fn trim_to_orf(inp_fasta: &Fasta) -> Result<Fasta, String> {
     let num_seqs = inp_fasta.get_num_entries();
     let starts = find_starts(&inp_fasta, num_seqs);
     let group_start = find_group_start(&starts.expect("failed to find start codons"));
+    let first_stops = find_first_stops(
+        &inp_fasta,
+        group_start.expect("failed to find group start codon"),
+    );
 
-    //let first_stops = find_stops(group_start.expect("failed to find group start codon"));
-
-    dbg!(group_start);
+    dbg!(first_stops);
 
     //println!("{:?}", starts);
 
@@ -28,8 +30,8 @@ fn find_starts(inp_fasta: &Fasta, num_seqs: usize) -> Option<Vec<Vec<usize>>> {
 
     for entry in inp_fasta {
         let mut index = 0;
-        for codon in entry.get_sequence().windows(3) {
-            if codon.to_ascii_uppercase() == b"ATG" || codon.to_ascii_uppercase() == b"AUG" {
+        for codon in entry.get_sequence().to_ascii_uppercase().windows(3) {
+            if codon == b"ATG" || codon == b"AUG" {
                 starts[entry.get_entry_num()].push(index);
             }
             index += 1;
@@ -78,6 +80,42 @@ fn find_group_start(starts: &Vec<Vec<usize>>) -> Option<usize> {
     max_key
 }
 
+fn find_first_stops(inp_fasta: &Fasta, group_start: usize) -> Option<Vec<usize>> {
+    let mut first_stops: Vec<usize> = Vec::new();
+
+    for entry in inp_fasta {
+        println!("\n");
+        dbg!(entry.get_sequence());
+        if group_start >= inp_fasta.get_num_entries() {
+            return None;
+        } else {
+            for (i, codon) in entry.get_sequence()[group_start..]
+                .to_ascii_uppercase()
+                .chunks(3)
+                .enumerate()
+            {
+                dbg!(codon);
+                if codon == b"TAG"
+                    || codon == b"TGA"
+                    || codon == b"TAA"
+                    || codon == b"UAG"
+                    || codon == b"UGA"
+                    || codon == b"UAA"
+                {
+                    first_stops.push(i * 3 + group_start);
+                    break;
+                }
+            }
+        }
+    }
+
+    if first_stops.is_empty() {
+        None
+    } else {
+        Some(first_stops)
+    }
+}
+
 #[allow(unused_imports)]
 mod test {
     use super::*;
@@ -122,5 +160,24 @@ mod test {
     fn no_group_starts() {
         let group_start = find_group_start(&vec![Vec::new()]);
         assert_eq!(group_start, None);
+    }
+
+    #[test]
+    fn good_first_stops() {
+        let fake_fasta_short: Fasta = open_fasta("../fake_short.fna").unwrap();
+        let starts = find_starts(&fake_fasta_short, fake_fasta_short.get_num_entries());
+        let group_start = find_group_start(&starts.unwrap()).unwrap();
+        let first_stops = find_first_stops(&fake_fasta_short, group_start);
+
+        assert_eq!(first_stops, Some(vec![8, 5, 8, 8, 8, 8, 8, 8]));
+    }
+
+    #[test]
+    fn bad_first_stop() {
+        let fake_fasta_short: Fasta = open_fasta("../fake_short.fna").unwrap();
+        let group_start = 70;
+        let first_stops = find_first_stops(&fake_fasta_short, group_start);
+
+        assert_eq!(first_stops, None);
     }
 }
