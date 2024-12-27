@@ -29,12 +29,15 @@ fn find_starts(inp_fasta: &Fasta, num_seqs: usize) -> Option<Vec<Vec<usize>>> {
     let mut starts: Vec<Vec<usize>> = vec![Vec::new(); num_seqs];
 
     for entry in inp_fasta {
-        let mut index = 0;
-        for codon in entry.get_sequence().to_ascii_uppercase().windows(3) {
+        for (i, codon) in entry
+            .get_sequence()
+            .to_ascii_uppercase()
+            .windows(3)
+            .enumerate()
+        {
             if codon == b"ATG" || codon == b"AUG" {
-                starts[entry.get_entry_num()].push(index);
+                starts[entry.get_entry_num()].push(i);
             }
-            index += 1;
         }
     }
 
