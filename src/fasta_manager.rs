@@ -59,11 +59,33 @@ impl<'a> IntoIterator for &'a Fasta {
     }
 }
 
-#[derive(Debug)]
 pub(crate) struct FastaEntry {
     defline: String,
     sequence: Vec<u8>,
     entry_number: usize,
+}
+
+impl fmt::Display for FastaEntry {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        writeln!(
+            f,
+            "name: {}, entry_number: {}",
+            self.defline, self.entry_number
+        )
+    }
+}
+
+impl fmt::Debug for FastaEntry {
+    fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let sequence_string = String::from_utf8(self.get_sequence().clone())
+            .unwrap_or_else(|_| "Invalid UTF-8 in fasta entry".to_string());
+
+        fmt.debug_struct("Fasta")
+            .field("defline", &self.defline)
+            .field("entry_number", &self.entry_number)
+            .field("sequence_data", &sequence_string)
+            .finish()
+    }
 }
 
 impl FastaEntry {
@@ -127,5 +149,15 @@ mod test {
         let fasta = open_fasta(fasta_name).unwrap();
         let num_entries = fasta.get_num_entries();
         assert_eq!(num_entries, 17);
+    }
+
+    #[ignore]
+    #[test]
+    fn print_fasta_entry() {
+        let fasta_entry = FastaEntry::new(String::from("test"), b"ATGTTTCCCTGA".to_vec(), 1);
+
+        println!("{}", fasta_entry);
+        println!("{:?}", fasta_entry);
+        println!("{:#?}", fasta_entry);
     }
 }

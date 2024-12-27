@@ -6,23 +6,18 @@
 5) Optionally output a report on the start and stop
 6) Optionally perform trimming and output the resulting output fasta file
 */
-use crate::fasta_manager::Fasta;
+use crate::fasta_manager::{Fasta, FastaEntry};
 use crate::math::get_mode_vec_usize;
 use std::collections::HashMap;
 
-pub(crate) fn trim_to_orf(inp_fasta: &Fasta) -> Result<Fasta, String> {
+pub(crate) fn trim_to_orf(inp_fasta: &Fasta, out_fasta: &str) -> Result<Fasta, String> {
     let num_seqs = inp_fasta.get_num_entries();
     let starts = find_starts(&inp_fasta, num_seqs).expect("failed to find start codons");
     let group_start = find_group_start(&starts).expect("failed to find group start codon");
     let first_stops =
         find_first_stops(&inp_fasta, group_start).expect("fialed to find first stop codons");
     let group_stop = get_mode_vec_usize(&first_stops).expect("failed to find group stop codon");
-
-    dbg!(first_stops);
-
-    //println!("{:?}", starts);
-
-    Err(String::from("still working"))
+    perform_trimming(&inp_fasta, group_start, group_stop, &out_fasta)
 }
 
 fn find_starts(inp_fasta: &Fasta, num_seqs: usize) -> Option<Vec<Vec<usize>>> {
@@ -87,8 +82,6 @@ fn find_first_stops(inp_fasta: &Fasta, group_start: usize) -> Option<Vec<usize>>
     let mut first_stops: Vec<usize> = Vec::new();
 
     for entry in inp_fasta {
-        println!("\n");
-        dbg!(entry.get_sequence());
         if group_start >= inp_fasta.get_num_entries() {
             return None;
         } else {
@@ -97,7 +90,6 @@ fn find_first_stops(inp_fasta: &Fasta, group_start: usize) -> Option<Vec<usize>>
                 .chunks(3)
                 .enumerate()
             {
-                dbg!(codon);
                 if codon == b"TAG"
                     || codon == b"TGA"
                     || codon == b"TAA"
@@ -116,6 +108,34 @@ fn find_first_stops(inp_fasta: &Fasta, group_start: usize) -> Option<Vec<usize>>
         None
     } else {
         Some(first_stops)
+    }
+}
+
+fn perform_trimming(
+    inp_fasta: &Fasta,
+    start: usize,
+    stop: usize,
+    out_fasta_name: &str,
+) -> Result<Fasta, String> {
+    let mut trimmed_fasta = Fasta::new(out_fasta_name);
+
+    for entry in inp_fasta {
+        let mut trimmed_sequence: Vec<u8> = Vec::new();
+        for (i, base) in entry.get_sequence().into_iter().enumerate() {
+            if i >= start && i < stop + 3 {
+                trimmed_sequence.push(*base);
+            }
+        }
+
+        let trimmed_entry =
+            FastaEntry::new(entry.get_defline(), trimmed_sequence, entry.get_entry_num());
+        trimmed_fasta.add(trimmed_entry);
+    }
+
+    if trimmed_fasta.get_num_entries() == 0 {
+        Err(String::from("failed to trim fasta"))
+    } else {
+        Ok(trimmed_fasta)
     }
 }
 
@@ -182,5 +202,27 @@ mod test {
         let first_stops = find_first_stops(&fake_fasta_short, group_start);
 
         assert_eq!(first_stops, None);
+    }
+
+    #[test]
+    fn full_trim_small() {
+        let fake_fasta_short: Fasta = open_fasta("../fake_short.fna").unwrap();
+        let trimmed_fasta = trim_to_orf(&fake_fasta_short, "./output.fasta").unwrap();
+        for entry in &trimmed_fasta {
+            match entry.get_entry_num() {
+                0 => assert_eq!(entry.get_sequence(), b"ATGATGTAG"),
+                1 => assert_eq!(entry.get_sequence(), b"ATGTGATAA"),
+                2 => assert_eq!(entry.get_sequence(), b"ATG--ATGA"),
+                3 => assert_eq!(entry.get_sequence(), b"atgatgtag"),
+                4 => assert_eq!(entry.get_sequence(), b"atGAtGTAG"),
+                5 => assert_eq!(entry.get_sequence(), b"ATGWKDTAG"),
+                6 => assert_eq!(entry.get_sequence(), b"ATGKSMTAA"),
+                7 => assert_eq!(entry.get_sequence(), b"NNNNNNNNN"),
+                8 => assert_eq!(entry.get_sequence(), b"GNG--TTGA"),
+                _ => panic!(),
+            }
+
+            dbg!(entry);
+        }
     }
 }

@@ -16,7 +16,7 @@ fn main() {
 
         let inp_fasta =
             open_fasta(args.get_inp_fasta()).expect("Failed to open input fasta file: {}");
-        let out_fasta = trim_to_orf(&inp_fasta);
+        let out_fasta = trim_to_orf(&inp_fasta, args.get_out_fasta());
 
         //dbg!(inp_fasta.get_numbered_entry(0));
         println!("trimmed fasta: {:#?}", out_fasta);
