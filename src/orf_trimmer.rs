@@ -7,16 +7,16 @@
 6) Optionally perform trimming and output the resulting output fasta file
 */
 use crate::fasta_manager::Fasta;
+use crate::math::get_mode_vec_usize;
 use std::collections::HashMap;
 
-pub(super) fn trim_to_orf(inp_fasta: &Fasta) -> Result<Fasta, String> {
+pub(crate) fn trim_to_orf(inp_fasta: &Fasta) -> Result<Fasta, String> {
     let num_seqs = inp_fasta.get_num_entries();
-    let starts = find_starts(&inp_fasta, num_seqs);
-    let group_start = find_group_start(&starts.expect("failed to find start codons"));
-    let first_stops = find_first_stops(
-        &inp_fasta,
-        group_start.expect("failed to find group start codon"),
-    );
+    let starts = find_starts(&inp_fasta, num_seqs).expect("failed to find start codons");
+    let group_start = find_group_start(&starts).expect("failed to find group start codon");
+    let first_stops =
+        find_first_stops(&inp_fasta, group_start).expect("fialed to find first stop codons");
+    let group_stop = get_mode_vec_usize(&first_stops).expect("failed to find group stop codon");
 
     dbg!(first_stops);
 

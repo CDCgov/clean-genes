@@ -4,6 +4,7 @@ use orf_trimmer::trim_to_orf;
 use process_args::Config;
 
 mod fasta_manager;
+mod math;
 mod orf_trimmer;
 mod process_args;
 
