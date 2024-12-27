@@ -20,6 +20,10 @@ impl Fasta {
     pub(crate) fn get_num_entries(&self) -> usize {
         self.data.len()
     }
+
+    pub(crate) fn get_numbered_entry(&self, num_entry: usize) -> &FastaEntry {
+        &self.data[num_entry]
+    }
 }
 
 impl fmt::Display for Fasta {
@@ -37,16 +41,52 @@ impl fmt::Debug for Fasta {
     }
 }
 
+impl IntoIterator for Fasta {
+    type Item = FastaEntry; // The type of items we are iterating over
+    type IntoIter = std::vec::IntoIter<FastaEntry>; // The iterator type
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.data.into_iter()
+    }
+}
+
+impl<'a> IntoIterator for &'a Fasta {
+    type Item = &'a FastaEntry;
+    type IntoIter = std::slice::Iter<'a, FastaEntry>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.data.iter()
+    }
+}
+
+#[derive(Debug)]
 pub(crate) struct FastaEntry {
     defline: String,
     sequence: Vec<u8>,
+    entry_number: usize,
 }
 
 impl FastaEntry {
-    pub(crate) fn new(defline: String, sequence: Vec<u8>) -> Self {
+    pub(crate) fn new(defline: String, sequence: Vec<u8>, entry_number: usize) -> Self {
         //do quality check first
 
-        FastaEntry { defline, sequence }
+        FastaEntry {
+            defline,
+            sequence,
+            entry_number,
+        }
+    }
+
+    pub(crate) fn get_defline(&self) -> String {
+        self.defline.clone()
+    }
+
+    pub(crate) fn get_entry_num(&self) -> usize {
+        self.entry_number
+    }
+
+    pub(crate) fn get_sequence(&self) -> &Vec<u8> {
+        &self.sequence
     }
 }
 
@@ -57,19 +97,21 @@ pub(crate) fn open_fasta(inp_fasta_name: &str) -> Result<Fasta, Box<dyn Error>> 
     let mut this_fasta = Fasta::new(inp_fasta_name);
     let mut last_defline = String::new();
     let mut last_seq: Vec<u8> = Vec::new();
+    let mut entry_num = 0;
     for line in contents.lines() {
         if line.starts_with('>') {
             if !last_seq.is_empty() {
-                let this_entry = FastaEntry::new(last_defline.clone(), last_seq.clone());
+                let this_entry = FastaEntry::new(last_defline.clone(), last_seq.clone(), entry_num);
                 this_fasta.add(this_entry);
                 last_seq = Vec::new();
+                entry_num += 1;
             }
             last_defline = String::from(&line[1..]);
         } else {
-            last_seq.extend(line[1..].as_bytes());
+            last_seq.extend(line.as_bytes());
         }
     }
-    let this_entry = FastaEntry::new(last_defline.clone(), last_seq);
+    let this_entry = FastaEntry::new(last_defline.clone(), last_seq, entry_num);
     this_fasta.add(this_entry);
 
     Ok(this_fasta)

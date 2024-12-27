@@ -1,5 +1,6 @@
 use clap::Parser;
 use fasta_manager::open_fasta;
+use orf_trimmer::trim_to_orf;
 use process_args::Config;
 
 mod fasta_manager;
@@ -12,8 +13,12 @@ fn main() {
     if args.get_module() == "TrimToORF" {
         println!("Activating module 'TrimToORF'");
 
-        open_fasta(args.get_inp_fasta());
-        //trim_to_orf()
+        let inp_fasta =
+            open_fasta(args.get_inp_fasta()).expect("Failed to open input fasta file: {}");
+        let out_fasta = trim_to_orf(&inp_fasta);
+
+        //dbg!(inp_fasta.get_numbered_entry(0));
+        println!("trimmed fasta: {:#?}", out_fasta);
     }
     println!("{:?}", args);
 }
