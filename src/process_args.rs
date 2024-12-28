@@ -24,7 +24,7 @@ pub struct Config {
 
     #[arg(short, long, help = "Output Fasta file", 
         default_value_t = String::from("./output.fasta"),
-    value_parser = validate_filename)]
+    value_parser = validate_out_fasta)]
     out_fasta: String,
 
     #[arg(short, long, help = "The selected module(s)",
@@ -63,6 +63,14 @@ fn validate_modules(module: &str) -> Result<String, String> {
         Err(format!("'{}' not a known module", module))
     } else {
         Ok(module.to_string())
+    }
+}
+
+fn validate_out_fasta(name: &str) -> Result<String, String> {
+    if name.is_empty() {
+        Err(String::from("Filename cannot be empty"))
+    } else {
+        Ok(name.to_string())
     }
 }
 
