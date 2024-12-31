@@ -35,17 +35,17 @@ pub struct Config {
 
 impl Config {
     /// Returns a reference to the chosen module(s)
-    pub(crate) fn get_module(&self) -> &str {
+    pub(crate) fn module(&self) -> &str {
         &self.module
     }
 
     /// Returns a reference the name of the input fasta file
-    pub(crate) fn get_inp_fasta(&self) -> &str {
+    pub(crate) fn inp_fasta(&self) -> &str {
         &self.inp_fasta
     }
 
     /// Returns a reference to the name of teh output fasta file
-    pub(crate) fn get_out_fasta(&self) -> &str {
+    pub(crate) fn out_fasta(&self) -> &str {
         &self.out_fasta
     }
 }

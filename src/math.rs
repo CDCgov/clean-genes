@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 /// Calculates the mathematical mode of a vector of usizes
-pub(crate) fn get_mode_vec_usize(list: &Vec<usize>) -> Option<usize> {
+pub(crate) fn mode_vec_usize(list: &Vec<usize>) -> Option<usize> {
     let mut counts: HashMap<usize, usize> = HashMap::new();
 
     for &num in list {
@@ -30,14 +30,14 @@ mod test {
     #[test]
     fn good_mode() {
         let the_list: Vec<usize> = vec![2, 7, 9, 2, 7, 7, 3];
-        let mode = get_mode_vec_usize(&the_list);
+        let mode = mode_vec_usize(&the_list);
         assert_eq!(mode, Some(7));
     }
 
     #[test]
     fn no_mode() {
         let the_list: Vec<usize> = Vec::new();
-        let mode = get_mode_vec_usize(&the_list);
+        let mode = mode_vec_usize(&the_list);
         assert_eq!(mode, None);
     }
 }

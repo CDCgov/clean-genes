@@ -7,18 +7,18 @@
 6) Optionally perform trimming and output the resulting output fasta file
 */
 use crate::fasta_manager::{Fasta, FastaEntry};
-use crate::math::get_mode_vec_usize;
+use crate::math::mode_vec_usize;
 use std::collections::HashMap;
 
 /// The main functon of the TrimToORF module. Takes a Fasta object as input and returns a Fasta
 /// object trimmed to what is determined to be the group start and stop codons
 pub(crate) fn trim_to_orf(inp_fasta: &Fasta, out_fasta: &str) -> Result<Fasta, String> {
-    let num_seqs = inp_fasta.get_num_entries();
+    let num_seqs = inp_fasta.num_entries();
     let starts = find_starts(&inp_fasta, num_seqs).expect("failed to find start codons");
     let group_start = find_group_start(&starts).expect("failed to find group start codon");
     let first_stops =
         find_first_stops(&inp_fasta, group_start).expect("fialed to find first stop codons");
-    let group_stop = get_mode_vec_usize(&first_stops).expect("failed to find group stop codon");
+    let group_stop = mode_vec_usize(&first_stops).expect("failed to find group stop codon");
     perform_trimming(&inp_fasta, group_start, group_stop, &out_fasta)
 }
 
@@ -27,14 +27,9 @@ fn find_starts(inp_fasta: &Fasta, num_seqs: usize) -> Option<Vec<Vec<usize>>> {
     let mut starts: Vec<Vec<usize>> = vec![Vec::new(); num_seqs];
 
     for entry in inp_fasta {
-        for (i, codon) in entry
-            .get_sequence()
-            .to_ascii_uppercase()
-            .windows(3)
-            .enumerate()
-        {
+        for (i, codon) in entry.sequence().to_ascii_uppercase().windows(3).enumerate() {
             if codon == b"ATG" || codon == b"AUG" {
-                starts[entry.get_entry_num()].push(i);
+                starts[entry.entry_num()].push(i);
             }
         }
     }
@@ -89,10 +84,10 @@ fn find_first_stops(inp_fasta: &Fasta, group_start: usize) -> Option<Vec<usize>>
     let mut first_stops: Vec<usize> = Vec::new();
 
     for entry in inp_fasta {
-        if group_start >= inp_fasta.get_num_entries() {
+        if group_start >= inp_fasta.num_entries() {
             return None;
         } else {
-            for (i, codon) in entry.get_sequence()[group_start..]
+            for (i, codon) in entry.sequence()[group_start..]
                 .to_ascii_uppercase()
                 .chunks(3)
                 .enumerate()
@@ -131,18 +126,17 @@ fn perform_trimming(
 
     for entry in inp_fasta {
         let mut trimmed_sequence: Vec<u8> = Vec::new();
-        for (i, base) in entry.get_sequence().into_iter().enumerate() {
+        for (i, base) in entry.sequence().into_iter().enumerate() {
             if i >= start && i < stop + 3 {
                 trimmed_sequence.push(*base);
             }
         }
 
-        let trimmed_entry =
-            FastaEntry::new(entry.get_defline(), trimmed_sequence, entry.get_entry_num());
+        let trimmed_entry = FastaEntry::new(entry.defline(), trimmed_sequence, entry.entry_num());
         trimmed_fasta.add(trimmed_entry);
     }
 
-    if trimmed_fasta.get_num_entries() == 0 {
+    if trimmed_fasta.num_entries() == 0 {
         Err(String::from("failed to trim fasta"))
     } else {
         Ok(trimmed_fasta)
@@ -157,7 +151,7 @@ mod test {
     #[test]
     fn good_starts() {
         let fake_fasta_short: Fasta = open_fasta("../fake_short.fna").unwrap();
-        let starts = find_starts(&fake_fasta_short, fake_fasta_short.get_num_entries());
+        let starts = find_starts(&fake_fasta_short, fake_fasta_short.num_entries());
         assert_eq!(
             starts.unwrap(),
             vec![
@@ -177,14 +171,14 @@ mod test {
     #[test]
     fn no_starts() {
         let no_fasta: Fasta = Fasta::new("../fakeFile.fna");
-        let starts = find_starts(&no_fasta, no_fasta.get_num_entries());
+        let starts = find_starts(&no_fasta, no_fasta.num_entries());
         assert_eq!(starts, None);
     }
 
     #[test]
     fn good_group_starts() {
         let fake_fasta_short: Fasta = open_fasta("../fake_short.fna").unwrap();
-        let starts = find_starts(&fake_fasta_short, fake_fasta_short.get_num_entries());
+        let starts = find_starts(&fake_fasta_short, fake_fasta_short.num_entries());
         let group_start = find_group_start(&starts.unwrap());
         assert_eq!(group_start, Some(2));
     }
@@ -198,7 +192,7 @@ mod test {
     #[test]
     fn good_first_stops() {
         let fake_fasta_short: Fasta = open_fasta("../fake_short.fna").unwrap();
-        let starts = find_starts(&fake_fasta_short, fake_fasta_short.get_num_entries());
+        let starts = find_starts(&fake_fasta_short, fake_fasta_short.num_entries());
         let group_start = find_group_start(&starts.unwrap()).unwrap();
         let first_stops = find_first_stops(&fake_fasta_short, group_start);
 
@@ -219,16 +213,16 @@ mod test {
         let fake_fasta_short: Fasta = open_fasta("../fake_short.fna").unwrap();
         let trimmed_fasta = trim_to_orf(&fake_fasta_short, "./output.fasta").unwrap();
         for entry in &trimmed_fasta {
-            match entry.get_entry_num() {
-                0 => assert_eq!(entry.get_sequence(), b"ATGATGTAG"),
-                1 => assert_eq!(entry.get_sequence(), b"ATGTGATAA"),
-                2 => assert_eq!(entry.get_sequence(), b"ATG--ATGA"),
-                3 => assert_eq!(entry.get_sequence(), b"atgatgtag"),
-                4 => assert_eq!(entry.get_sequence(), b"atGAtGTAG"),
-                5 => assert_eq!(entry.get_sequence(), b"ATGWKDTAG"),
-                6 => assert_eq!(entry.get_sequence(), b"ATGKSMTAA"),
-                7 => assert_eq!(entry.get_sequence(), b"NNNNNNNNN"),
-                8 => assert_eq!(entry.get_sequence(), b"GNG--TTGA"),
+            match entry.entry_num() {
+                0 => assert_eq!(entry.sequence(), b"ATGATGTAG"),
+                1 => assert_eq!(entry.sequence(), b"ATGTGATAA"),
+                2 => assert_eq!(entry.sequence(), b"ATG--ATGA"),
+                3 => assert_eq!(entry.sequence(), b"atgatgtag"),
+                4 => assert_eq!(entry.sequence(), b"atGAtGTAG"),
+                5 => assert_eq!(entry.sequence(), b"ATGWKDTAG"),
+                6 => assert_eq!(entry.sequence(), b"ATGKSMTAA"),
+                7 => assert_eq!(entry.sequence(), b"NNNNNNNNN"),
+                8 => assert_eq!(entry.sequence(), b"GNG--TTGA"),
                 _ => panic!(),
             }
 

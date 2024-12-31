@@ -21,12 +21,12 @@ impl Fasta {
     }
 
     /// Returns the number of FastaEntrys in this Fasta
-    pub(crate) fn get_num_entries(&self) -> usize {
+    pub(crate) fn num_entries(&self) -> usize {
         self.data.len()
     }
 
     /// Returns a specific FastaEntry using its position in the data vector. Position starts with 0.
-    pub(crate) fn get_numbered_entry(&self, num_entry: usize) -> &FastaEntry {
+    pub(crate) fn indexed_entry(&self, num_entry: usize) -> &FastaEntry {
         &self.data[num_entry]
     }
 }
@@ -90,7 +90,7 @@ impl fmt::Display for FastaEntry {
 /// u8s, which is how it is stored in clean-genes
 impl fmt::Debug for FastaEntry {
     fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let sequence_string = String::from_utf8(self.get_sequence().clone())
+        let sequence_string = String::from_utf8(self.sequence().clone())
             .unwrap_or_else(|_| "Invalid UTF-8 in fasta entry".to_string());
 
         fmt.debug_struct("Fasta")
@@ -114,17 +114,17 @@ impl FastaEntry {
     }
 
     /// Returns the defline of this FastaEntry
-    pub(crate) fn get_defline(&self) -> String {
+    pub(crate) fn defline(&self) -> String {
         self.defline.clone()
     }
 
     /// Returns the position of this FastaEntry in the Fasta's data vector. positions start at 0.
-    pub(crate) fn get_entry_num(&self) -> usize {
+    pub(crate) fn entry_num(&self) -> usize {
         self.entry_number
     }
 
     /// Returns the sequence associated with this FastaEntry
-    pub(crate) fn get_sequence(&self) -> &Vec<u8> {
+    pub(crate) fn sequence(&self) -> &Vec<u8> {
         &self.sequence
     }
 }
@@ -164,7 +164,7 @@ mod test {
     fn test_fasta_open() {
         let fasta_name = "test_data/a_ha_h3_raw_500.fna";
         let fasta = open_fasta(fasta_name).unwrap();
-        let num_entries = fasta.get_num_entries();
+        let num_entries = fasta.num_entries();
         assert_eq!(num_entries, 17);
     }
 
