@@ -1,11 +1,13 @@
 use std::{error::Error, fmt, fs};
 
+///Represents a fasta file. contains a filename and a vector of FastaEntrys
 pub(crate) struct Fasta {
     filename: String,
     data: Vec<FastaEntry>,
 }
 
 impl Fasta {
+    /// Constructor for Fasta
     pub(crate) fn new(filename: &str) -> Self {
         Fasta {
             filename: String::from(filename),
@@ -13,25 +15,30 @@ impl Fasta {
         }
     }
 
+    /// Add a FastaEntry to this Fasta
     pub(crate) fn add(&mut self, new_entry: FastaEntry) {
         self.data.push(new_entry);
     }
 
+    /// Returns the number of FastaEntrys in this Fasta
     pub(crate) fn get_num_entries(&self) -> usize {
         self.data.len()
     }
 
+    /// Returns a specific FastaEntry using its position in the data vector. Position starts with 0.
     pub(crate) fn get_numbered_entry(&self, num_entry: usize) -> &FastaEntry {
         &self.data[num_entry]
     }
 }
 
+/// For displaying a Fasta simply. Only shows filename
 impl fmt::Display for Fasta {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         writeln!(f, "{}", self.filename)
     }
 }
 
+/// For detailed dispay of a Fasta
 impl fmt::Debug for Fasta {
     fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
         fmt.debug_struct("Fasta")
@@ -41,6 +48,7 @@ impl fmt::Debug for Fasta {
     }
 }
 
+/// Allows iteration through the FastaEntrys in Fasta
 impl IntoIterator for Fasta {
     type Item = FastaEntry; // The type of items we are iterating over
     type IntoIter = std::vec::IntoIter<FastaEntry>; // The iterator type
@@ -50,6 +58,7 @@ impl IntoIterator for Fasta {
     }
 }
 
+/// Allows iteration thorugh the FastaEntrys in &Fasta
 impl<'a> IntoIterator for &'a Fasta {
     type Item = &'a FastaEntry;
     type IntoIter = std::slice::Iter<'a, FastaEntry>;
@@ -59,12 +68,14 @@ impl<'a> IntoIterator for &'a Fasta {
     }
 }
 
+/// Represents a defline-sequence pair from a fasta file
 pub(crate) struct FastaEntry {
     defline: String,
     sequence: Vec<u8>,
     entry_number: usize,
 }
 
+/// Allows simple display for FastaEntry. Shows only the defline and the position number of the entry in the Fasta. Position numbers start at 0.
 impl fmt::Display for FastaEntry {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         writeln!(
@@ -75,6 +86,8 @@ impl fmt::Display for FastaEntry {
     }
 }
 
+/// Allows detailed display for FastaEntry. Displays sequence as a String rather than a vector of
+/// u8s, which is how it is stored in clean-genes
 impl fmt::Debug for FastaEntry {
     fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
         let sequence_string = String::from_utf8(self.get_sequence().clone())
@@ -89,6 +102,7 @@ impl fmt::Debug for FastaEntry {
 }
 
 impl FastaEntry {
+    /// Constructor for FastaEntry
     pub(crate) fn new(defline: String, sequence: Vec<u8>, entry_number: usize) -> Self {
         //do quality check first
 
@@ -99,20 +113,23 @@ impl FastaEntry {
         }
     }
 
+    /// Returns the defline of this FastaEntry
     pub(crate) fn get_defline(&self) -> String {
         self.defline.clone()
     }
 
+    /// Returns the position of this FastaEntry in the Fasta's data vector. positions start at 0.
     pub(crate) fn get_entry_num(&self) -> usize {
         self.entry_number
     }
 
+    /// Returns the sequence associated with this FastaEntry
     pub(crate) fn get_sequence(&self) -> &Vec<u8> {
         &self.sequence
     }
 }
 
-///Comes with the assumption that this is an alignment file
+/// Reads a fasta file and stores it in a Fasta object.
 pub(crate) fn open_fasta(inp_fasta_name: &str) -> Result<Fasta, Box<dyn Error>> {
     let contents = fs::read_to_string(inp_fasta_name)?;
 

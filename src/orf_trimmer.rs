@@ -10,6 +10,8 @@ use crate::fasta_manager::{Fasta, FastaEntry};
 use crate::math::get_mode_vec_usize;
 use std::collections::HashMap;
 
+/// The main functon of the TrimToORF module. Takes a Fasta object as input and returns a Fasta
+/// object trimmed to what is determined to be the group start and stop codons
 pub(crate) fn trim_to_orf(inp_fasta: &Fasta, out_fasta: &str) -> Result<Fasta, String> {
     let num_seqs = inp_fasta.get_num_entries();
     let starts = find_starts(&inp_fasta, num_seqs).expect("failed to find start codons");
@@ -20,6 +22,7 @@ pub(crate) fn trim_to_orf(inp_fasta: &Fasta, out_fasta: &str) -> Result<Fasta, S
     perform_trimming(&inp_fasta, group_start, group_stop, &out_fasta)
 }
 
+/// Identifies all start codons in all reading frames for a Fasta object
 fn find_starts(inp_fasta: &Fasta, num_seqs: usize) -> Option<Vec<Vec<usize>>> {
     let mut starts: Vec<Vec<usize>> = vec![Vec::new(); num_seqs];
 
@@ -43,6 +46,8 @@ fn find_starts(inp_fasta: &Fasta, num_seqs: usize) -> Option<Vec<Vec<usize>>> {
     }
 }
 
+/// Identifies the common start codon locus based on the location and consistency of available
+/// start codons in the provided fasta file
 fn find_group_start(starts: &Vec<Vec<usize>>) -> Option<usize> {
     let mut start_scores: HashMap<usize, usize> = HashMap::new();
     for entry in starts {
@@ -78,6 +83,8 @@ fn find_group_start(starts: &Vec<Vec<usize>>) -> Option<usize> {
     max_key
 }
 
+/// Identifies the common stop codon locus. Uses the determined common start codon locus to define
+/// the reading frame and then identifies the first stop codon for each sequence in that frame
 fn find_first_stops(inp_fasta: &Fasta, group_start: usize) -> Option<Vec<usize>> {
     let mut first_stops: Vec<usize> = Vec::new();
 
@@ -111,6 +118,9 @@ fn find_first_stops(inp_fasta: &Fasta, group_start: usize) -> Option<Vec<usize>>
     }
 }
 
+/// Does the actual trimming step, taking in the Fasta object, the group start and stop codons (the
+/// locus at which to trim), and the name of the output file and returns a trimmed Fasta object
+/// with a new name matching the name of the output file
 fn perform_trimming(
     inp_fasta: &Fasta,
     start: usize,

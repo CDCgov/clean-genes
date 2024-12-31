@@ -1,6 +1,7 @@
 use clap::Parser;
 use std::path::Path;
 
+/// Contains the parameters set by all user arguments into clean-genes
 #[derive(Parser, Default, Debug)]
 #[command(
     name = "clean-genes",
@@ -33,19 +34,23 @@ pub struct Config {
 }
 
 impl Config {
+    /// Returns a reference to the chosen module(s)
     pub(crate) fn get_module(&self) -> &str {
         &self.module
     }
 
+    /// Returns a reference the name of the input fasta file
     pub(crate) fn get_inp_fasta(&self) -> &str {
         &self.inp_fasta
     }
 
+    /// Returns a reference to the name of teh output fasta file
     pub(crate) fn get_out_fasta(&self) -> &str {
         &self.out_fasta
     }
 }
 
+/// Confirms that a filename was provided and exists
 fn validate_filename(name: &str) -> Result<String, String> {
     if name.is_empty() {
         Err(String::from("Filename cannot be empty"))
@@ -56,6 +61,7 @@ fn validate_filename(name: &str) -> Result<String, String> {
     }
 }
 
+/// Confirms that a module name was provided and is recognized by clean-genes
 fn validate_modules(module: &str) -> Result<String, String> {
     if module.is_empty() {
         Err(String::from("Module name cannot be empty"))
@@ -66,6 +72,7 @@ fn validate_modules(module: &str) -> Result<String, String> {
     }
 }
 
+/// Conifirms that an output filename was provided
 fn validate_out_fasta(name: &str) -> Result<String, String> {
     if name.is_empty() {
         Err(String::from("Filename cannot be empty"))

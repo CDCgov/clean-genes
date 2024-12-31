@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 
+/// Calculates the mathematical mode of a vector of usizes
 pub(crate) fn get_mode_vec_usize(list: &Vec<usize>) -> Option<usize> {
     let mut counts: HashMap<usize, usize> = HashMap::new();
 
