@@ -150,7 +150,7 @@ mod test {
 
     #[test]
     fn good_starts() {
-        let fake_fasta_short: Fasta = open_fasta("../fake_short.fna").unwrap();
+        let fake_fasta_short: Fasta = open_fasta("fake_short.fna").unwrap();
         let starts = find_starts(&fake_fasta_short, fake_fasta_short.num_entries());
         assert_eq!(
             starts.unwrap(),
@@ -170,14 +170,14 @@ mod test {
 
     #[test]
     fn no_starts() {
-        let no_fasta: Fasta = Fasta::new("../fakeFile.fna");
+        let no_fasta: Fasta = Fasta::new("fakeFile.fna");
         let starts = find_starts(&no_fasta, no_fasta.num_entries());
         assert_eq!(starts, None);
     }
 
     #[test]
     fn good_group_starts() {
-        let fake_fasta_short: Fasta = open_fasta("../fake_short.fna").unwrap();
+        let fake_fasta_short: Fasta = open_fasta("fake_short.fna").unwrap();
         let starts = find_starts(&fake_fasta_short, fake_fasta_short.num_entries());
         let group_start = find_group_start(&starts.unwrap());
         assert_eq!(group_start, Some(2));
@@ -191,7 +191,7 @@ mod test {
 
     #[test]
     fn good_first_stops() {
-        let fake_fasta_short: Fasta = open_fasta("../fake_short.fna").unwrap();
+        let fake_fasta_short: Fasta = open_fasta("fake_short.fna").unwrap();
         let starts = find_starts(&fake_fasta_short, fake_fasta_short.num_entries());
         let group_start = find_group_start(&starts.unwrap()).unwrap();
         let first_stops = find_first_stops(&fake_fasta_short, group_start);
@@ -201,7 +201,7 @@ mod test {
 
     #[test]
     fn bad_first_stop() {
-        let fake_fasta_short: Fasta = open_fasta("../fake_short.fna").unwrap();
+        let fake_fasta_short: Fasta = open_fasta("fake_short.fna").unwrap();
         let group_start = 70;
         let first_stops = find_first_stops(&fake_fasta_short, group_start);
 
@@ -210,7 +210,7 @@ mod test {
 
     #[test]
     fn full_trim_small() {
-        let fake_fasta_short: Fasta = open_fasta("../fake_short.fna").unwrap();
+        let fake_fasta_short: Fasta = open_fasta("fake_short.fna").unwrap();
         let trimmed_fasta = trim_to_orf(&fake_fasta_short, "./output.fasta").unwrap();
         for entry in &trimmed_fasta {
             match entry.entry_num() {
