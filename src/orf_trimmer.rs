@@ -84,7 +84,7 @@ fn find_first_stops(inp_fasta: &Fasta, group_start: usize) -> Option<Vec<usize>>
     let mut first_stops: Vec<usize> = Vec::new();
 
     for entry in inp_fasta {
-        if group_start >= inp_fasta.num_entries() {
+        if group_start >= entry.sequence().len() {
             return None;
         } else {
             for (i, codon) in entry.sequence()[group_start..]
