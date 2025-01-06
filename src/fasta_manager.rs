@@ -15,6 +15,11 @@ impl Fasta {
         }
     }
 
+    /// Returns the filename of the Fasta
+    pub(crate) fn filename(&self) -> &str {
+        &self.filename
+    }
+
     /// Add a FastaEntry to this Fasta
     pub(crate) fn add(&mut self, new_entry: FastaEntry) {
         self.data.push(new_entry);
@@ -127,6 +132,13 @@ impl FastaEntry {
     pub(crate) fn sequence(&self) -> &Vec<u8> {
         &self.sequence
     }
+
+    /// Prints the data contained in a FastaEntry to stdout
+    pub(crate) fn print_entry(&self) {
+        println!(">{}", self.defline());
+        let sequence_string = String::from_utf8(self.sequence().clone()).unwrap();
+        println!("{}", sequence_string)
+    }
 }
 
 /// Reads a fasta file and stores it in a Fasta object.
@@ -154,6 +166,13 @@ pub(crate) fn open_fasta(inp_fasta_name: &str) -> Result<Fasta, Box<dyn Error>> 
     this_fasta.add(this_entry);
 
     Ok(this_fasta)
+}
+
+/// Writes a Fasta object to a fasta file
+pub(crate) fn write_fasta(fasta_obj: &Fasta) {
+    for entry in fasta_obj {
+        entry.print_entry();
+    }
 }
 
 #[allow(unused_imports)]
