@@ -143,7 +143,7 @@ fn perform_trimming(
         if entry.entry_num() == 1 {}
 
         let trimmed_entry = FastaEntry::new(entry.defline(), trimmed_sequence, entry.entry_num());
-        trimmed_fasta.add(trimmed_entry.clone());
+        trimmed_fasta.add(trimmed_entry);
     }
 
     if trimmed_fasta.num_entries() == 0 {
