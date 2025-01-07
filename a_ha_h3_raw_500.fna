@@ -464,7 +464,7 @@ cagggtacaaagattggatcctatggatttcctttgccatatcatgttttttgctttgtg
 ttgctttgttggggttcatcatgtgggcctgccaaaagggcaacattaggtgca------
 ---a-catttgcatttga----------------------------------------
 >CY002240{A_HA_H3}
----------------------tattaaccatgaagactatca------ttgctttgagct
+------------------------------------------------ttgctttgagct
 acattctatgtctggttttcgctcaaaaacttcccggaaatg---acaacagcacggcaa
 cgctgtgccttgggcaccatgcagtaccaaacggaacgatagtgaaaacaatcacgaatg
 accaaattgaagttactaatgctactgagctggttcagagttcctcaacaggtggaatat
@@ -494,7 +494,3 @@ atgtatacagagatgaggcattgaacaaccggttccagatcaaaggtgttgagctgaagt
 caggatacaaagattggatcctatggatttcctttgccatatcatgttttttgctttgtg
 ttgctttgttggggttcatcatgtgggcctgccaaaaaggcaacattaggtgca------
 ---a-catttgcatttgag-tgcat---taatt-aaaaacacccttgtttctact---
->KY583624{A_HA_H3}
------------------------------atgaagactatca------ttgctttgagct
-acattctatgtctggttttcgctcaaaaaattcctggaaatg---acaatagcacggcaa
-cgctgtgccttgggcaccatgcagtaccaaacggaacgatagtgaaaacaatcacaaatg

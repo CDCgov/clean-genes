@@ -1,12 +1,4 @@
-/* Algorithm
-1) For each seq, identify all the start codons in reading frames 1,2, and 3
-2) For all seqs determine the true start locus based on the mode of start codons and set the frame of the alignment
-3) Identify the first stop codon for all seqs in this frame
-4) For all seqs determine the true stop locus based on the mode of stop codons
-5) Optionally output a report on the start and stop
-6) Optionally perform trimming and output the resulting output fasta file
-*/
-use crate::fasta_manager::{Fasta, FastaEntry};
+use crate::fasta_manager::{remove_gaps, Fasta, FastaEntry};
 use crate::math::mode_vec_usize;
 use std::collections::HashMap;
 
@@ -84,10 +76,26 @@ fn find_first_stops(inp_fasta: &Fasta, group_start: usize) -> Option<Vec<usize>>
     let mut first_stops: Vec<usize> = Vec::new();
 
     for entry in inp_fasta {
+        let mut index_map: HashMap<usize, usize> = HashMap::new();
+        let mut gapless_i = 0;
+
+        if group_start >= entry.sequence().len() {
+            return None;
+        }
+
+        for (i, &base) in entry.sequence()[group_start..].iter().enumerate() {
+            if base != b'-' {
+                if i != 0 {
+                    gapless_i += 1;
+                }
+                index_map.insert(gapless_i, i + group_start);
+            }
+        }
+
         if group_start >= entry.sequence().len() {
             return None;
         } else {
-            for (i, codon) in entry.sequence()[group_start..]
+            for (i, codon) in remove_gaps(&entry.sequence()[group_start..])
                 .to_ascii_uppercase()
                 .chunks(3)
                 .enumerate()
@@ -99,7 +107,8 @@ fn find_first_stops(inp_fasta: &Fasta, group_start: usize) -> Option<Vec<usize>>
                     || codon == b"UGA"
                     || codon == b"UAA"
                 {
-                    first_stops.push(i * 3 + group_start);
+                    let i_with_gap = *index_map.get(&(i * 3)).unwrap();
+                    first_stops.push(i_with_gap);
                     break;
                 }
             }
@@ -131,9 +140,10 @@ fn perform_trimming(
                 trimmed_sequence.push(*base);
             }
         }
+        if entry.entry_num() == 1 {}
 
         let trimmed_entry = FastaEntry::new(entry.defline(), trimmed_sequence, entry.entry_num());
-        trimmed_fasta.add(trimmed_entry);
+        trimmed_fasta.add(trimmed_entry.clone());
     }
 
     if trimmed_fasta.num_entries() == 0 {
@@ -196,7 +206,7 @@ mod test {
         let group_start = find_group_start(&starts.unwrap()).unwrap();
         let first_stops = find_first_stops(&fake_fasta_short, group_start);
 
-        assert_eq!(first_stops, Some(vec![8, 5, 8, 8, 8, 8, 8, 8]));
+        assert_eq!(first_stops, Some(vec![8, 5, 8, 8, 8, 8]));
     }
 
     #[test]
@@ -225,8 +235,6 @@ mod test {
                 8 => assert_eq!(entry.sequence(), b"GNG--TTGA"),
                 _ => panic!(),
             }
-
-            dbg!(entry);
         }
     }
 }

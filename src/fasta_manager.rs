@@ -74,6 +74,7 @@ impl<'a> IntoIterator for &'a Fasta {
 }
 
 /// Represents a defline-sequence pair from a fasta file
+#[derive(Clone)]
 pub(crate) struct FastaEntry {
     defline: String,
     sequence: Vec<u8>,
@@ -173,6 +174,14 @@ pub(crate) fn write_fasta(fasta_obj: &Fasta) {
     for entry in fasta_obj {
         entry.print_entry();
     }
+}
+
+pub(crate) fn remove_gaps(the_vec: &[u8]) -> Vec<u8> {
+    the_vec
+        .iter()
+        .filter(|&&byte| byte != b'-')
+        .cloned()
+        .collect()
 }
 
 #[allow(unused_imports)]
