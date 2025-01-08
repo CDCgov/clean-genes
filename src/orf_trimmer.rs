@@ -6,12 +6,12 @@ use std::collections::HashMap;
 /// object trimmed to what is determined to be the group start and stop codons
 pub(crate) fn trim_to_orf(inp_fasta: &Fasta, out_fasta: &str) -> Result<Fasta, String> {
     let num_seqs = inp_fasta.num_entries();
-    let starts = find_starts(&inp_fasta, num_seqs).expect("failed to find start codons");
+    let starts = find_starts(inp_fasta, num_seqs).expect("failed to find start codons");
     let group_start = find_group_start(&starts).expect("failed to find group start codon");
     let first_stops =
-        find_first_stops(&inp_fasta, group_start).expect("fialed to find first stop codons");
+        find_first_stops(inp_fasta, group_start).expect("fialed to find first stop codons");
     let group_stop = mode_vec_usize(&first_stops).expect("failed to find group stop codon");
-    perform_trimming(&inp_fasta, group_start, group_stop, &out_fasta)
+    perform_trimming(inp_fasta, group_start, group_stop, out_fasta)
 }
 
 /// Identifies all start codons in all reading frames for a Fasta object
@@ -40,15 +40,15 @@ fn find_group_start(starts: &Vec<Vec<usize>>) -> Option<usize> {
     for entry in starts {
         let mut this_score;
         for (i, start) in entry.iter().enumerate() {
-            match i + 1 {
+            this_score = match i + 1 {
                 //This scoring matrix is arbitrary and should be adjusted based on the quality of
                 //results observed
-                1 => this_score = 8,
-                2 => this_score = 4,
-                3 => this_score = 2,
-                4 => this_score = 1,
-                _ => this_score = 0,
-            }
+                1 => 8,
+                2 => 4,
+                3 => 2,
+                4 => 1,
+                _ => 0,
+            };
 
             if let Some(value) = start_scores.get_mut(start) {
                 *value += this_score;
@@ -77,7 +77,7 @@ fn find_first_stops(inp_fasta: &Fasta, group_start: usize) -> Option<Vec<usize>>
 
     for entry in inp_fasta {
         let mut index_map: HashMap<usize, usize> = HashMap::new();
-        let mut gapless_i = 0;
+        let mut i_unaligned = 0;
 
         if group_start >= entry.sequence().len() {
             return None;
@@ -86,9 +86,9 @@ fn find_first_stops(inp_fasta: &Fasta, group_start: usize) -> Option<Vec<usize>>
         for (i, &base) in entry.sequence()[group_start..].iter().enumerate() {
             if base != b'-' {
                 if i != 0 {
-                    gapless_i += 1;
+                    i_unaligned += 1;
                 }
-                index_map.insert(gapless_i, i + group_start);
+                index_map.insert(i_unaligned, i + group_start);
             }
         }
 
@@ -100,13 +100,7 @@ fn find_first_stops(inp_fasta: &Fasta, group_start: usize) -> Option<Vec<usize>>
                 .chunks(3)
                 .enumerate()
             {
-                if codon == b"TAG"
-                    || codon == b"TGA"
-                    || codon == b"TAA"
-                    || codon == b"UAG"
-                    || codon == b"UGA"
-                    || codon == b"UAA"
-                {
+                if matches!(codon, b"TAG" | b"TGA" | b"TAA" | b"UAG" | b"UGA" | b"UAA") {
                     let i_with_gap = *index_map.get(&(i * 3)).unwrap();
                     first_stops.push(i_with_gap);
                     break;
@@ -135,12 +129,12 @@ fn perform_trimming(
 
     for entry in inp_fasta {
         let mut trimmed_sequence: Vec<u8> = Vec::new();
-        for (i, base) in entry.sequence().into_iter().enumerate() {
+        for (i, base) in entry.sequence().iter().enumerate() {
             if i >= start && i < stop + 3 {
                 trimmed_sequence.push(*base);
             }
         }
-        if entry.entry_num() == 1 {}
+        //if entry.entry_num() == 1 {}
 
         let trimmed_entry = FastaEntry::new(entry.defline(), trimmed_sequence, entry.entry_num());
         trimmed_fasta.add(trimmed_entry);

@@ -4,5 +4,6 @@
         "CFPB",
         "ISSO",
         "cybersecurity"
-    ]
+    ],
+    "rust-analyzer.check.command": "clippy"
 }

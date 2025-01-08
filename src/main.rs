@@ -17,7 +17,7 @@ fn main() {
         let inp_fasta = open_fasta(args.inp_fasta()).expect("Failed to open input fasta file: {}");
         let out_fasta = trim_to_orf(&inp_fasta, args.out_fasta());
         match &out_fasta {
-            Ok(success_fasta) => write_fasta(&success_fasta),
+            Ok(success_fasta) => write_fasta(success_fasta),
             Err(_e) => println!("failed to trim to ORF"),
         }
     }

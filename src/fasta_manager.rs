@@ -81,7 +81,8 @@ pub(crate) struct FastaEntry {
     entry_number: usize,
 }
 
-/// Allows simple display for FastaEntry. Shows only the defline and the position number of the entry in the Fasta. Position numbers start at 0.
+/// Allows simple display for FastaEntry. Shows only the defline and the
+/// position number of the entry in the Fasta. Position numbers start at 0.
 impl fmt::Display for FastaEntry {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         writeln!(
@@ -92,8 +93,8 @@ impl fmt::Display for FastaEntry {
     }
 }
 
-/// Allows detailed display for FastaEntry. Displays sequence as a String rather than a vector of
-/// u8s, which is how it is stored in clean-genes
+/// Allows detailed display for FastaEntry. Displays sequence as a String rather
+/// than a vector of u8s, which is how it is stored in clean-genes
 impl fmt::Debug for FastaEntry {
     fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
         let sequence_string = String::from_utf8(self.sequence().clone())
