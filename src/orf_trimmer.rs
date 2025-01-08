@@ -76,33 +76,24 @@ fn find_first_stops(inp_fasta: &Fasta, group_start: usize) -> Option<Vec<usize>>
     let mut first_stops: Vec<usize> = Vec::new();
 
     for entry in inp_fasta {
-        let mut index_map: HashMap<usize, usize> = HashMap::new();
-        let mut i_unaligned = 0;
-
         if group_start >= entry.sequence().len() {
             return None;
-        }
-
-        for (i, &base) in entry.sequence()[group_start..].iter().enumerate() {
-            if base != b'-' {
-                if i != 0 {
-                    i_unaligned += 1;
-                }
-                index_map.insert(i_unaligned, i + group_start);
-            }
         }
 
         if group_start >= entry.sequence().len() {
             return None;
         } else {
-            for (i, codon) in remove_gaps(&entry.sequence()[group_start..])
-                .to_ascii_uppercase()
-                .chunks(3)
+            for (codon_index, codon) in entry.sequence()[group_start..]
+                .iter()
+                .copied()
+                .map(|b| b.to_ascii_uppercase())
                 .enumerate()
+                .filter(|(_, b)| *b != b'-')
+                .array_chunks::<3>()
+                .map(|a| (a[0].0, [a[0].1, a[1].1, a[2].1]))
             {
-                if matches!(codon, b"TAG" | b"TGA" | b"TAA" | b"UAG" | b"UGA" | b"UAA") {
-                    let i_with_gap = *index_map.get(&(i * 3)).unwrap();
-                    first_stops.push(i_with_gap);
+                if matches!(&codon, b"TAG" | b"TGA" | b"TAA" | b"UAG" | b"UGA" | b"UAA") {
+                    first_stops.push(group_start + codon_index);
                     break;
                 }
             }
