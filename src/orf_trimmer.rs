@@ -1,21 +1,22 @@
 use crate::fasta_manager::{remove_gaps, Fasta, FastaEntry};
 use crate::math::mode_vec_usize;
 use std::collections::HashMap;
+use std::error::Error;
 
 /// The main functon of the TrimToORF module. Takes a Fasta object as input and returns a Fasta
 /// object trimmed to what is determined to be the group start and stop codons
-pub(crate) fn trim_to_orf(inp_fasta: &Fasta, out_fasta: &str) -> Result<Fasta, String> {
+pub(crate) fn trim_to_orf(inp_fasta: &Fasta, out_fasta: &str) -> Result<Fasta, Box<dyn Error>> {
     let num_seqs = inp_fasta.num_entries();
-    let starts = find_starts(inp_fasta, num_seqs).expect("failed to find start codons");
-    let group_start = find_group_start(&starts).expect("failed to find group start codon");
-    let first_stops =
-        find_first_stops(inp_fasta, group_start).expect("fialed to find first stop codons");
-    let group_stop = mode_vec_usize(&first_stops).expect("failed to find group stop codon");
+    let starts = find_starts(inp_fasta, num_seqs)?;
+    let group_start = find_group_start(&starts)?;
+    let first_stops = find_first_stops(inp_fasta, group_start)?;
+    //let group_stop = mode_vec_usize(&first_stops).expect("failed to find group stop codon");
+    let group_stop = mode_vec_usize(&first_stops)?;
     perform_trimming(inp_fasta, group_start, group_stop, out_fasta)
 }
 
 /// Identifies all start codons in all reading frames for a Fasta object
-fn find_starts(inp_fasta: &Fasta, num_seqs: usize) -> Option<Vec<Vec<usize>>> {
+fn find_starts(inp_fasta: &Fasta, num_seqs: usize) -> Result<Vec<Vec<usize>>, Box<dyn Error>> {
     let mut starts: Vec<Vec<usize>> = vec![Vec::new(); num_seqs];
 
     for entry in inp_fasta {
@@ -27,15 +28,15 @@ fn find_starts(inp_fasta: &Fasta, num_seqs: usize) -> Option<Vec<Vec<usize>>> {
     }
 
     if starts.is_empty() {
-        None
+        Err(Box::from("Fialed to find start codons in input alignment"))
     } else {
-        Some(starts)
+        Ok(starts)
     }
 }
 
-/// Identifies the common start codon locus based on the location and consistency of available
-/// start codons in the provided fasta file
-fn find_group_start(starts: &Vec<Vec<usize>>) -> Option<usize> {
+/// Identifies the common start codon locus based on the location and
+/// consistency of available start codons in the provided fasta file.
+fn find_group_start(starts: &Vec<Vec<usize>>) -> Result<usize, Box<dyn Error>> {
     let mut start_scores: HashMap<usize, usize> = HashMap::new();
     for entry in starts {
         let mut this_score;
@@ -58,31 +59,29 @@ fn find_group_start(starts: &Vec<Vec<usize>>) -> Option<usize> {
         }
     }
 
-    let mut max_value: Option<usize> = None;
-    let mut max_key: Option<usize> = None;
+    let mut max_value = usize::MIN;
+    let mut max_key = None;
     for (&key, &value) in &start_scores {
-        if max_value.is_none() || value > max_value.unwrap() {
-            max_value = Some(value);
+        if value > max_value {
+            max_value = value;
             max_key = Some(key);
         }
     }
 
-    max_key
+    match max_key {
+        Some(locus) => Ok(locus),
+        None => Err(Box::from("Failed to find a group start codon")),
+    }
 }
 
 /// Identifies the common stop codon locus. Uses the determined common start codon locus to define
 /// the reading frame and then identifies the first stop codon for each sequence in that frame
-fn find_first_stops(inp_fasta: &Fasta, group_start: usize) -> Option<Vec<usize>> {
+fn find_first_stops(inp_fasta: &Fasta, group_start: usize) -> Result<Vec<usize>, Box<dyn Error>> {
     let mut first_stops: Vec<usize> = Vec::new();
 
     for entry in inp_fasta {
-        if group_start >= entry.sequence().len() {
-            return None;
-        }
-
-        if group_start >= entry.sequence().len() {
-            return None;
-        } else {
+        //if the group start codon is past the length of this sequence, move to the next sequence
+        if group_start < entry.sequence().len() {
             for (codon_index, codon) in entry.sequence()[group_start..]
                 .iter()
                 .copied()
@@ -101,9 +100,12 @@ fn find_first_stops(inp_fasta: &Fasta, group_start: usize) -> Option<Vec<usize>>
     }
 
     if first_stops.is_empty() {
-        None
+        Err(Box::from(format!(
+            "Failed to find any stop codons in the frame of the group start codon at locus {}",
+            group_start + 1
+        )))
     } else {
-        Some(first_stops)
+        Ok(first_stops)
     }
 }
 
@@ -115,7 +117,7 @@ fn perform_trimming(
     start: usize,
     stop: usize,
     out_fasta_name: &str,
-) -> Result<Fasta, String> {
+) -> Result<Fasta, Box<dyn Error>> {
     let mut trimmed_fasta = Fasta::new(out_fasta_name);
 
     for entry in inp_fasta {
@@ -132,7 +134,7 @@ fn perform_trimming(
     }
 
     if trimmed_fasta.num_entries() == 0 {
-        Err(String::from("failed to trim fasta"))
+        Err(Box::from("failed to trim fasta"))
     } else {
         Ok(trimmed_fasta)
     }
@@ -149,17 +151,17 @@ mod test {
         let starts = find_starts(&fake_fasta_short, fake_fasta_short.num_entries());
         assert_eq!(
             starts.unwrap(),
-            vec![
-                vec![2, 5],
-                vec![2],
-                vec![2, 7],
-                vec![2, 5],
-                vec![2, 5],
-                vec![2],
-                vec![2],
-                vec![],
-                vec![0]
-            ]
+            Vec::from([
+                Vec::from([2, 5]),
+                Vec::from([2]),
+                Vec::from([2, 7]),
+                Vec::from([2, 5]),
+                Vec::from([2, 5]),
+                Vec::from([2]),
+                Vec::from([2]),
+                Vec::from([]),
+                Vec::from([0])
+            ])
         );
     }
 
@@ -167,7 +169,10 @@ mod test {
     fn no_starts() {
         let no_fasta: Fasta = Fasta::new("fakeFile.fna");
         let starts = find_starts(&no_fasta, no_fasta.num_entries());
-        assert_eq!(starts, None);
+        assert_eq!(
+            starts.unwrap_err().to_string(),
+            "Fialed to find start codons in input alignment"
+        );
     }
 
     #[test]
@@ -175,13 +180,16 @@ mod test {
         let fake_fasta_short: Fasta = open_fasta("fake_short.fna").unwrap();
         let starts = find_starts(&fake_fasta_short, fake_fasta_short.num_entries());
         let group_start = find_group_start(&starts.unwrap());
-        assert_eq!(group_start, Some(2));
+        assert_eq!(group_start.unwrap(), 2);
     }
 
     #[test]
     fn no_group_starts() {
-        let group_start = find_group_start(&vec![Vec::new()]);
-        assert_eq!(group_start, None);
+        let group_start = find_group_start(&Vec::from([Vec::new()]));
+        assert_eq!(
+            group_start.unwrap_err().to_string(),
+            "Failed to find a group start codon"
+        );
     }
 
     #[test]
@@ -191,7 +199,7 @@ mod test {
         let group_start = find_group_start(&starts.unwrap()).unwrap();
         let first_stops = find_first_stops(&fake_fasta_short, group_start);
 
-        assert_eq!(first_stops, Some(vec![8, 5, 8, 8, 8, 8]));
+        assert_eq!(first_stops.unwrap(), Vec::from([8, 5, 8, 8, 8, 8]));
     }
 
     #[test]
@@ -200,7 +208,10 @@ mod test {
         let group_start = 70;
         let first_stops = find_first_stops(&fake_fasta_short, group_start);
 
-        assert_eq!(first_stops, None);
+        assert_eq!(
+            first_stops.unwrap_err().to_string(),
+            "Failed to find any stop codons in the frame of the group start codon at locus 71"
+        );
     }
 
     #[test]

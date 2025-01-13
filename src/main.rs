@@ -4,6 +4,7 @@ use clap::Parser;
 use fasta_manager::{open_fasta, write_fasta};
 use orf_trimmer::trim_to_orf;
 use process_args::Config;
+use std::process;
 
 mod fasta_manager;
 mod math;
@@ -16,11 +17,26 @@ fn main() {
     if args.module() == "TrimToORF" {
         eprintln!("Activating module 'TrimToORF'");
 
-        let inp_fasta = open_fasta(args.inp_fasta()).expect("Failed to open input fasta file: {}");
-        let out_fasta = trim_to_orf(&inp_fasta, args.out_fasta());
-        match &out_fasta {
-            Ok(success_fasta) => write_fasta(success_fasta),
-            Err(_e) => println!("failed to trim to ORF"),
-        }
+        let inp_fasta = match open_fasta(args.inp_fasta()) {
+            Ok(success_fasta) => success_fasta,
+            Err(err) => {
+                eprintln!(
+                    "\nFailed to open input fasta file, '{}', \nproducing the error: '{}'\n",
+                    args.inp_fasta(),
+                    err
+                );
+                process::exit(1);
+            }
+        };
+
+        let out_fasta = match trim_to_orf(&inp_fasta, args.out_fasta()) {
+            Ok(success_fasta) => success_fasta,
+            Err(err) => {
+                eprintln!("\nFailed to trim to ORF, producing the error: '{}'\n", err);
+                process::exit(1);
+            }
+        };
+
+        write_fasta(&out_fasta)
     }
 }

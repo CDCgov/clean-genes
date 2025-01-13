@@ -135,7 +135,8 @@ impl FastaEntry {
         &self.sequence
     }
 
-    /// Prints the data contained in a FastaEntry to stdout
+    /// Prints the data contained in a FastaEntry to stdout. May panic if unexpected behavior
+    /// occurs
     pub(crate) fn print_entry(&self) {
         println!(">{}", self.defline());
         let sequence_string = String::from_utf8(self.sequence().clone()).unwrap();
@@ -156,7 +157,7 @@ pub(crate) fn open_fasta(inp_fasta_name: &str) -> Result<Fasta, Box<dyn Error>> 
             if !last_seq.is_empty() {
                 let this_entry = FastaEntry::new(last_defline.clone(), last_seq.clone(), entry_num);
                 this_fasta.add(this_entry);
-                last_seq = Vec::new();
+                last_seq.clear();
                 entry_num += 1;
             }
             last_defline = String::from(&line[1..]);
@@ -164,8 +165,11 @@ pub(crate) fn open_fasta(inp_fasta_name: &str) -> Result<Fasta, Box<dyn Error>> 
             last_seq.extend(line.as_bytes());
         }
     }
-    let this_entry = FastaEntry::new(last_defline.clone(), last_seq, entry_num);
-    this_fasta.add(this_entry);
+
+    if !last_seq.is_empty() {
+        let this_entry = FastaEntry::new(last_defline.clone(), last_seq, entry_num);
+        this_fasta.add(this_entry);
+    }
 
     Ok(this_fasta)
 }
