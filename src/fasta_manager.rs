@@ -193,12 +193,12 @@ mod test {
 
     #[test]
     fn test_fasta_files() {
-        test_fasta_file(FASTA_NAME_1);
+        test_fasta_file(FASTA_NAME_1, 17);
     }
 
-    fn test_fasta_file(fasta_name : &str) {
+    fn test_fasta_file(fasta_name : &str, s : usize) {
         let fasta = open_fasta(fasta_name).unwrap();
-        assert_eq!(fasta.num_entries(), 17);
+        assert_eq!(fasta.num_entries(), s);
         assert_eq!(fasta.filename(), fasta_name);
     }
 
