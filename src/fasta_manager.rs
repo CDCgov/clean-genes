@@ -189,10 +189,14 @@ pub(crate) fn remove_gaps(the_vec: &[u8]) -> Vec<u8> {
 mod test {
     use super::*;
 
+    const FASTA_EMPTY : &str = "test_data/empty_file.fna";
+    const FASTA_NAME_1SEQ : &str = "test_data/1seq_file.fna";
     const FASTA_NAME_1 : &str = "test_data/a_ha_h3_raw_500.fna";
 
     #[test]
     fn test_fasta_files() {
+        test_fasta_file(FASTA_EMPTY, 0);
+        test_fasta_file(FASTA_NAME_1SEQ, 1);
         test_fasta_file(FASTA_NAME_1, 17);
     }
 
