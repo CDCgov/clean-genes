@@ -164,8 +164,10 @@ pub(crate) fn open_fasta(inp_fasta_name: &str) -> Result<Fasta, Box<dyn Error>> 
             last_seq.extend(line.as_bytes());
         }
     }
-    let this_entry = FastaEntry::new(last_defline.clone(), last_seq, entry_num);
-    this_fasta.add(this_entry);
+    if !last_seq.is_empty() {
+        let this_entry = FastaEntry::new(last_defline.clone(), last_seq, entry_num);
+        this_fasta.add(this_entry);
+    }
 
     Ok(this_fasta)
 }
