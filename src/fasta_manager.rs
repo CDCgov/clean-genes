@@ -189,12 +189,17 @@ pub(crate) fn remove_gaps(the_vec: &[u8]) -> Vec<u8> {
 mod test {
     use super::*;
 
+    const FASTA_NAME_1 : &str = "test_data/a_ha_h3_raw_500.fna";
+
     #[test]
-    fn test_fasta_open() {
-        let fasta_name = "test_data/a_ha_h3_raw_500.fna";
+    fn test_fasta_files() {
+        test_fasta_file(FASTA_NAME_1);
+    }
+
+    fn test_fasta_file(fasta_name : &str) {
         let fasta = open_fasta(fasta_name).unwrap();
-        let num_entries = fasta.num_entries();
-        assert_eq!(num_entries, 17);
+        assert_eq!(fasta.num_entries(), 17);
+        assert_eq!(fasta.filename(), fasta_name);
     }
 
     #[ignore]
