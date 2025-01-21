@@ -196,11 +196,20 @@ mod test {
     const FASTA_NAME_1 : &str = "test_data/a_ha_h3_raw_500.fna";
 
     #[test]
-    fn test_fasta_files() {
+    fn test_empty_fasta() {
         test_fasta_file(FASTA_EMPTY, 0);
+    }
+
+    #[test]
+    fn test_1seq_fasta() {
         test_fasta_file(FASTA_NAME_1SEQ, 1);
+    }
+
+    #[test]
+    fn test_reg_fasta() {
         test_fasta_file(FASTA_NAME_1, 17);
     }
+
 
     fn test_fasta_file(fasta_name : &str, s : usize) {
         let fasta = open_fasta(fasta_name).unwrap();
