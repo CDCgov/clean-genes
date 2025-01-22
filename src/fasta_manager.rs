@@ -194,6 +194,7 @@ mod test {
     const FASTA_EMPTY : &str = "test_data/empty_file.fna";
     const FASTA_NAME_1SEQ : &str = "test_data/1seq_file.fna";
     const FASTA_NAME_1 : &str = "test_data/a_ha_h3_raw_500.fna";
+    const FASTA_NAME_FAKE : &str = "test_data/fake_file.fna";
 
     #[test]
     fn test_empty_fasta() {
@@ -210,8 +211,15 @@ mod test {
         test_fasta_file(FASTA_NAME_1, 17);
     }
 
+    #[test]
+    fn test_fake_fasta() {
+        let mut fasta = test_fasta_file(FASTA_NAME_FAKE, 2);
+        test_fasta_seq(&mut fasta, 0, "---agcataagaaaga-aga");
+        test_fasta_defline(&mut fasta, 0, " fake_test 1 a ");
+    }
 
-    fn test_fasta_file(fasta_name : &str, s : usize) {
+
+    fn test_fasta_file(fasta_name : &str, s : usize) -> Fasta {
         let fasta = open_fasta(fasta_name).unwrap();
 
         if fasta.num_entries() != 0 {
@@ -219,21 +227,18 @@ mod test {
         }
         assert_eq!(fasta.num_entries(), s);
         assert_eq!(fasta.filename(), fasta_name);
+        fasta
     }
 
-    fn test_fasta_seq(fasta_name : &str, i : usize, seq : &str) {
+    fn test_fasta_seq(fasta : &mut Fasta, i : usize, seq : &str) {
         use std::str;
 
-        let fasta = open_fasta(fasta_name).unwrap();
         let seq_orig = fasta.indexed_entry(i).sequence();
 
         assert_eq!(str::from_utf8(seq_orig).unwrap(), seq);
     }
 
-    fn test_fasta_defline(fasta_name : &str, i : usize, defline : &str) {
-        use std::str;
-
-        let fasta = open_fasta(fasta_name).unwrap();
+    fn test_fasta_defline(fasta : &mut Fasta, i : usize, defline : &str) {
         let defline_orig = fasta.indexed_entry(i).defline();
 
         assert_eq!(defline_orig, defline);
