@@ -210,6 +210,9 @@ mod test {
         let mut fasta = test_fasta_file(FASTA_NAME_FAKE, 2);
         test_fasta_seq(&mut fasta, 0, "---agcataagaaaga-aga");
         test_fasta_defline(&mut fasta, 0, " fake_test 1 a ");
+        test_fasta_seq(&mut fasta, 1, "--gggcta-");
+        test_fasta_defline(&mut fasta, 1, " fake_test 2 a");
+
     }
 
 
