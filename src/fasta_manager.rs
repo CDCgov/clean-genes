@@ -230,6 +230,15 @@ mod test {
         assert_eq!(str::from_utf8(seq_orig).unwrap(), seq);
     }
 
+    fn test_fasta_defline(fasta_name : &str, i : usize, defline : &str) {
+        use std::str;
+
+        let fasta = open_fasta(fasta_name).unwrap();
+        let defline_orig = fasta.indexed_entry(i).defline();
+
+        assert_eq!(defline_orig, defline);
+    }
+
     #[ignore]
     #[test]
     fn print_fasta_entry() {
