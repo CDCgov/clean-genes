@@ -221,6 +221,15 @@ mod test {
         assert_eq!(fasta.filename(), fasta_name);
     }
 
+    fn test_fasta_seq(fasta_name : &str, i : usize, seq : &str) {
+        use std::str;
+
+        let fasta = open_fasta(fasta_name).unwrap();
+        let seq_orig = fasta.indexed_entry(i).sequence();
+
+        assert_eq!(str::from_utf8(seq_orig).unwrap(), seq);
+    }
+
     #[ignore]
     #[test]
     fn print_fasta_entry() {
