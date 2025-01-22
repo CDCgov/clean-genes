@@ -216,9 +216,6 @@ mod test {
     fn test_fasta_file(fasta_name : &str, s : usize) -> Fasta {
         let fasta = open_fasta(fasta_name).unwrap();
 
-        if fasta.num_entries() != 0 {
-            fasta.indexed_entry(0).print_entry();
-        }
         assert_eq!(fasta.num_entries(), s);
         assert_eq!(fasta.filename(), fasta_name);
         fasta
