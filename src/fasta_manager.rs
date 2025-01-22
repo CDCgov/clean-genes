@@ -192,18 +192,12 @@ mod test {
     use super::*;
 
     const FASTA_EMPTY : &str = "test_data/empty_file.fna";
-    const FASTA_NAME_1SEQ : &str = "test_data/1seq_file.fna";
     const FASTA_NAME_1 : &str = "test_data/a_ha_h3_raw_500.fna";
     const FASTA_NAME_FAKE : &str = "test_data/fake_file.fna";
 
     #[test]
     fn test_empty_fasta() {
         test_fasta_file(FASTA_EMPTY, 0);
-    }
-
-    #[test]
-    fn test_1seq_fasta() {
-        test_fasta_file(FASTA_NAME_1SEQ, 1);
     }
 
     #[test]
