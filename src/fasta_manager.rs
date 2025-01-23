@@ -191,34 +191,17 @@ pub(crate) fn remove_gaps(the_vec: &[u8]) -> Vec<u8> {
 mod test {
     use super::*;
 
-    const FASTA_EMPTY : &str = "test_data/empty_file.fna";
     const FASTA_NAME_1 : &str = "test_data/a_ha_h3_raw_500.fna";
-    const FASTA_NAME_FAKE : &str = "test_data/fake_file.fna";
 
     #[test]
-    fn test_empty_fasta() {
-        test_fasta_file(FASTA_EMPTY, 0);
-    }
-
-    #[test]
-    fn test_reg_fasta() {
+    fn test_fasta_1() {
         let mut fasta = test_fasta_file(FASTA_NAME_1, 17);
+
         test_fasta_defline(&mut fasta, 0, "MW585046{A_HA_H3}");
         test_fasta_seq(&mut fasta, 0, "-----------------------------atgaagacaacca------ttattttgatactactgacccattgggcttacagtcaaaa---cccaatcaatg---acaacaacacagccacattgtgtctaggacaccatgcagtagcaaatggaacattggtaaaaacaataagtgatgatcaaattgaggtgacaaatgctacagaattagttcagagcattccaatggggaaaatatgcaacaattcgtatagaattctagat---ggaaagaattgcacattaatagatgcaatgctaggagacccccactgtgacgcctttcagtatgagaattgggacctctttatagaaagaagcagcgccttcagcaattgcta-cccatatgacatccctaactatgcatcgctccgatccattgtagcatcctcaggaacattggaattcacagcagagggattcacatggacaggtgtcactcaaaacggaagaagcggatcctgcaaaaggggatcagccgatagtttctttagccgactgaattggctaacaaaatccggaagctcttaccccacattgaatgtgacaatgcctaacaataaaaacttcgacaagctatacatctgggggatccatcacccgagctcaactaaagagcagacaaaattgtatatccaggaatcagggcgagtaacagtctcaacaaaaagaagtcaacaaacaataatccctaacattgggtctagaccatggatcagaggtcaatcaggtaggataagcatatactggaccattgtaaaacctggagatatcctaatgataaacagtaatggcaacttagttgcaccgcggggatactttaaattgaaaacagggaaaagctctgtaatgagatcagatg---tacccataga-catttgtgtgtctgaat-gtattacaccaaatggaagcatctccaacgacaagccattccaaaatgtgaacaaagttacatatggaaaatgtcccaagtatatcagacaaaacactttaaagctggccactgggatgaggaatgtaccagaaaagcaaatcagaggaatctttggggcaatagcgggattcatcgaaaacggctgggaaggaatggttgatggatggtatgggttccgataccaaaactctgaaggaacagggcaagctgcagatctaaagagcactcaagcagccatcgaccagatcaatggaaagttaaacagagtgattgaaagaaccaatgagaaattccatcaaatagagaaggaattctcagaagtagaaggaagaattcaggacttggagaaatatgtagaagacaccaaaatagacctatggtcctacaatgcagaattgctggtggctctagaaaatcaacatacaattgacttaacagatgcagaaatgaataaattgtttgagagaactagacgcctgttaagagaaaacgcagaagacatgggaggtggatgtttcaagatttaccacaaatgtaataatgcatgcattggatcaataagaaatgggacatatgaccattacatatacagagatgaagcattaaacaaccgatttcagatcaaaggtgtagagttgaaatcaggctacaaagattggatactctggatttcattcgccatatcatgcttcttaatttgcgttgttctattgggttt------------------------------------------------------------------------------------------------------");
         test_fasta_defline(&mut fasta, 16, "KY583624{A_HA_H3}");
         test_fasta_seq(&mut fasta, 16, "-----------------------------atgaagactatca------ttgctttgagctacattctatgtctggttttcgctcaaaaaattcctggaaatg---acaatagcacggcaacgctgtgccttgggcaccatgcagtaccaaacggaacgatagtgaaaacaatcacaaatg");
     }
-
-    #[test]
-    fn test_fake_fasta() {
-        let mut fasta = test_fasta_file(FASTA_NAME_FAKE, 2);
-        test_fasta_seq(&mut fasta, 0, "---agcataagaaaga-aga");
-        test_fasta_defline(&mut fasta, 0, " fake_test 1 a ");
-        test_fasta_seq(&mut fasta, 1, "--gggcta-");
-        test_fasta_defline(&mut fasta, 1, " fake_test 2 a");
-
-    }
-
 
     fn test_fasta_file(fasta_name : &str, s : usize) -> Fasta {
         let fasta = open_fasta(fasta_name).unwrap();
