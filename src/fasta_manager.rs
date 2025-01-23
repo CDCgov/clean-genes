@@ -111,7 +111,7 @@ impl fmt::Debug for FastaEntry {
 impl FastaEntry {
     /// Constructor for FastaEntry
     pub(crate) fn new(defline: String, sequence: Vec<u8>, entry_number: usize) -> Self {
-        //do quality check first
+        //do quality check first including looking for empty sequence
 
         FastaEntry {
             defline,
@@ -164,10 +164,9 @@ pub(crate) fn open_fasta(inp_fasta_name: &str) -> Result<Fasta, Box<dyn Error>> 
             last_seq.extend(line.as_bytes());
         }
     }
-    if !last_seq.is_empty() {
-        let this_entry = FastaEntry::new(last_defline.clone(), last_seq, entry_num);
-        this_fasta.add(this_entry);
-    }
+
+    let this_entry = FastaEntry::new(last_defline.clone(), last_seq.clone(), entry_num);
+    this_fasta.add(this_entry);
 
     Ok(this_fasta)
 }
@@ -191,7 +190,7 @@ pub(crate) fn remove_gaps(the_vec: &[u8]) -> Vec<u8> {
 mod test {
     use super::*;
 
-    const FASTA_NAME_1 : &str = "test_data/a_ha_h3_raw_500.fna";
+    const FASTA_NAME_1: &str = "test_data/a_ha_h3_raw_500.fna";
 
     #[test]
     fn test_fasta_1() {
@@ -203,7 +202,7 @@ mod test {
         test_fasta_seq(&mut fasta, 16, "-----------------------------atgaagactatca------ttgctttgagctacattctatgtctggttttcgctcaaaaaattcctggaaatg---acaatagcacggcaacgctgtgccttgggcaccatgcagtaccaaacggaacgatagtgaaaacaatcacaaatg");
     }
 
-    fn test_fasta_file(fasta_name : &str, s : usize) -> Fasta {
+    fn test_fasta_file(fasta_name: &str, s: usize) -> Fasta {
         let fasta = open_fasta(fasta_name).unwrap();
 
         assert_eq!(fasta.num_entries(), s);
@@ -211,7 +210,7 @@ mod test {
         fasta
     }
 
-    fn test_fasta_seq(fasta : &mut Fasta, i : usize, seq : &str) {
+    fn test_fasta_seq(fasta: &mut Fasta, i: usize, seq: &str) {
         use std::str;
 
         let seq_orig = fasta.indexed_entry(i).sequence();
@@ -219,7 +218,7 @@ mod test {
         assert_eq!(str::from_utf8(seq_orig).unwrap(), seq);
     }
 
-    fn test_fasta_defline(fasta : &mut Fasta, i : usize, defline : &str) {
+    fn test_fasta_defline(fasta: &mut Fasta, i: usize, defline: &str) {
         let defline_orig = fasta.indexed_entry(i).defline();
 
         assert_eq!(defline_orig, defline);
