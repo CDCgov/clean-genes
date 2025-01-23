@@ -202,7 +202,11 @@ mod test {
 
     #[test]
     fn test_reg_fasta() {
-        test_fasta_file(FASTA_NAME_1, 17);
+        let mut fasta = test_fasta_file(FASTA_NAME_1, 17);
+        test_fasta_defline(&mut fasta, 0, "MW585046{A_HA_H3}");
+        test_fasta_seq(&mut fasta, 0, "-----------------------------atgaagacaacca------ttattttgatactactgacccattgggcttacagtcaaaa---cccaatcaatg---acaacaacacagccacattgtgtctaggacaccatgcagtagcaaatggaacattggtaaaaacaataagtgatgatcaaattgaggtgacaaatgctacagaattagttcagagcattccaatggggaaaatatgcaacaattcgtatagaattctagat---ggaaagaattgcacattaatagatgcaatgctaggagacccccactgtgacgcctttcagtatgagaattgggacctctttatagaaagaagcagcgccttcagcaattgcta-cccatatgacatccctaactatgcatcgctccgatccattgtagcatcctcaggaacattggaattcacagcagagggattcacatggacaggtgtcactcaaaacggaagaagcggatcctgcaaaaggggatcagccgatagtttctttagccgactgaattggctaacaaaatccggaagctcttaccccacattgaatgtgacaatgcctaacaataaaaacttcgacaagctatacatctgggggatccatcacccgagctcaactaaagagcagacaaaattgtatatccaggaatcagggcgagtaacagtctcaacaaaaagaagtcaacaaacaataatccctaacattgggtctagaccatggatcagaggtcaatcaggtaggataagcatatactggaccattgtaaaacctggagatatcctaatgataaacagtaatggcaacttagttgcaccgcggggatactttaaattgaaaacagggaaaagctctgtaatgagatcagatg---tacccataga-catttgtgtgtctgaat-gtattacaccaaatggaagcatctccaacgacaagccattccaaaatgtgaacaaagttacatatggaaaatgtcccaagtatatcagacaaaacactttaaagctggccactgggatgaggaatgtaccagaaaagcaaatcagaggaatctttggggcaatagcgggattcatcgaaaacggctgggaaggaatggttgatggatggtatgggttccgataccaaaactctgaaggaacagggcaagctgcagatctaaagagcactcaagcagccatcgaccagatcaatggaaagttaaacagagtgattgaaagaaccaatgagaaattccatcaaatagagaaggaattctcagaagtagaaggaagaattcaggacttggagaaatatgtagaagacaccaaaatagacctatggtcctacaatgcagaattgctggtggctctagaaaatcaacatacaattgacttaacagatgcagaaatgaataaattgtttgagagaactagacgcctgttaagagaaaacgcagaagacatgggaggtggatgtttcaagatttaccacaaatgtaataatgcatgcattggatcaataagaaatgggacatatgaccattacatatacagagatgaagcattaaacaaccgatttcagatcaaaggtgtagagttgaaatcaggctacaaagattggatactctggatttcattcgccatatcatgcttcttaatttgcgttgttctattgggttt------------------------------------------------------------------------------------------------------");
+        test_fasta_defline(&mut fasta, 16, "KY583624{A_HA_H3}");
+        test_fasta_seq(&mut fasta, 16, "-----------------------------atgaagactatca------ttgctttgagctacattctatgtctggttttcgctcaaaaaattcctggaaatg---acaatagcacggcaacgctgtgccttgggcaccatgcagtaccaaacggaacgatagtgaaaacaatcacaaatg");
     }
 
     #[test]
