@@ -179,14 +179,6 @@ pub(crate) fn write_fasta(fasta_obj: &Fasta) {
     }
 }
 
-pub(crate) fn remove_gaps(the_vec: &[u8]) -> Vec<u8> {
-    the_vec
-        .iter()
-        .filter(|&&byte| byte != b'-')
-        .cloned()
-        .collect()
-}
-
 #[allow(unused_imports)]
 mod test {
     use super::*;

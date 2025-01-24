@@ -1,4 +1,4 @@
-use crate::fasta_manager::{remove_gaps, Fasta, FastaEntry};
+use crate::fasta_manager::{Fasta, FastaEntry};
 use crate::math::mode_vec_usize;
 use std::collections::HashMap;
 use std::error::Error;
