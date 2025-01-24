@@ -130,7 +130,6 @@ fn perform_trimming(
                 trimmed_sequence.push(*base);
             }
         }
-        //if entry.entry_num() == 1 {}
 
         let trimmed_entry = FastaEntry::new(entry.defline(), trimmed_sequence, entry.entry_num());
         trimmed_fasta.add(trimmed_entry);
