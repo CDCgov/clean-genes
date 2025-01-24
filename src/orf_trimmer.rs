@@ -3,14 +3,14 @@ use crate::math::mode_vec_usize;
 use std::collections::HashMap;
 use std::error::Error;
 
-/// The main functon of the TrimToORF module. Takes a Fasta object as input and returns a Fasta
-/// object trimmed to what is determined to be the group start and stop codons
+/// The main functon of the TrimToORF module. Takes a Fasta object as input and
+/// returns a Fasta object trimmed to what is determined to be the group start
+/// and stop codons
 pub(crate) fn trim_to_orf(inp_fasta: &Fasta, out_fasta: &str) -> Result<Fasta, Box<dyn Error>> {
     let num_seqs = inp_fasta.num_entries();
     let starts = find_starts(inp_fasta, num_seqs)?;
     let group_start = find_group_start(&starts)?;
     let first_stops = find_first_stops(inp_fasta, group_start)?;
-    //let group_stop = mode_vec_usize(&first_stops).expect("failed to find group stop codon");
     let group_stop = mode_vec_usize(&first_stops)?;
     perform_trimming(inp_fasta, group_start, group_stop, out_fasta)
 }
@@ -42,8 +42,8 @@ fn find_group_start(starts: &Vec<Vec<usize>>) -> Result<usize, Box<dyn Error>> {
         let mut this_score;
         for (i, start) in entry.iter().enumerate() {
             this_score = match i + 1 {
-                //This scoring matrix is arbitrary and should be adjusted based on the quality of
-                //results observed
+                //This scoring matrix is arbitrary and should be adjusted based
+                //on the quality of results observed
                 1 => 8,
                 2 => 4,
                 3 => 2,
@@ -74,13 +74,15 @@ fn find_group_start(starts: &Vec<Vec<usize>>) -> Result<usize, Box<dyn Error>> {
     }
 }
 
-/// Identifies the common stop codon locus. Uses the determined common start codon locus to define
-/// the reading frame and then identifies the first stop codon for each sequence in that frame
+/// Identifies the common stop codon locus. Uses the determined common start
+/// codon locus to define the reading frame and then identifies the first stop
+/// codon for each sequence in that frame
 fn find_first_stops(inp_fasta: &Fasta, group_start: usize) -> Result<Vec<usize>, Box<dyn Error>> {
     let mut first_stops: Vec<usize> = Vec::new();
 
     for entry in inp_fasta {
-        //if the group start codon is past the length of this sequence, move to the next sequence
+        //if the group start codon is past the length of this sequence, move to
+        //the next sequence
         if group_start < entry.sequence().len() {
             for (codon_index, codon) in entry.sequence()[group_start..]
                 .iter()
@@ -109,9 +111,10 @@ fn find_first_stops(inp_fasta: &Fasta, group_start: usize) -> Result<Vec<usize>,
     }
 }
 
-/// Does the actual trimming step, taking in the Fasta object, the group start and stop codons (the
-/// locus at which to trim), and the name of the output file and returns a trimmed Fasta object
-/// with a new name matching the name of the output file
+/// Does the actual trimming step, taking in the Fasta object, the group start
+/// and stop codons (the locus at which to trim), and the name of the output
+/// file and returns a trimmed Fasta object with a new name matching the name
+/// of the output file
 fn perform_trimming(
     inp_fasta: &Fasta,
     start: usize,

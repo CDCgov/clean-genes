@@ -30,7 +30,8 @@ impl Fasta {
         self.data.len()
     }
 
-    /// Returns a specific FastaEntry using its position in the data vector. Position starts with 0.
+    /// Returns a specific FastaEntry using its position in the data vector.
+    /// Position starts with 0.
     pub(crate) fn indexed_entry(&self, num_entry: usize) -> &FastaEntry {
         &self.data[num_entry]
     }
@@ -125,7 +126,8 @@ impl FastaEntry {
         self.defline.clone()
     }
 
-    /// Returns the position of this FastaEntry in the Fasta's data vector. positions start at 0.
+    /// Returns the position of this FastaEntry in the Fasta's data vector.
+    /// positions start at 0.
     pub(crate) fn entry_num(&self) -> usize {
         self.entry_number
     }
@@ -135,8 +137,8 @@ impl FastaEntry {
         &self.sequence
     }
 
-    /// Prints the data contained in a FastaEntry to stdout. May panic if unexpected behavior
-    /// occurs
+    /// Prints the data contained in a FastaEntry to stdout. May panic if
+    /// unexpected behavior occurs
     pub(crate) fn print_entry(&self) {
         println!(">{}", self.defline());
         let sequence_string = String::from_utf8(self.sequence().clone()).unwrap();
@@ -188,7 +190,6 @@ mod test {
     #[test]
     fn test_fasta_1() {
         let mut fasta = test_fasta_file(FASTA_NAME_1, 17);
-
         test_fasta_defline(&mut fasta, 0, "MW585046{A_HA_H3}");
         test_fasta_seq(&mut fasta, 0, "-----------------------------atgaagacaacca------ttattttgatactactgacccattgggcttacagtcaaaa---cccaatcaatg---acaacaacacagccacattgtgtctaggacaccatgcagtagcaaatggaacattggtaaaaacaataagtgatgatcaaattgaggtgacaaatgctacagaattagttcagagcattccaatggggaaaatatgcaacaattcgtatagaattctagat---ggaaagaattgcacattaatagatgcaatgctaggagacccccactgtgacgcctttcagtatgagaattgggacctctttatagaaagaagcagcgccttcagcaattgcta-cccatatgacatccctaactatgcatcgctccgatccattgtagcatcctcaggaacattggaattcacagcagagggattcacatggacaggtgtcactcaaaacggaagaagcggatcctgcaaaaggggatcagccgatagtttctttagccgactgaattggctaacaaaatccggaagctcttaccccacattgaatgtgacaatgcctaacaataaaaacttcgacaagctatacatctgggggatccatcacccgagctcaactaaagagcagacaaaattgtatatccaggaatcagggcgagtaacagtctcaacaaaaagaagtcaacaaacaataatccctaacattgggtctagaccatggatcagaggtcaatcaggtaggataagcatatactggaccattgtaaaacctggagatatcctaatgataaacagtaatggcaacttagttgcaccgcggggatactttaaattgaaaacagggaaaagctctgtaatgagatcagatg---tacccataga-catttgtgtgtctgaat-gtattacaccaaatggaagcatctccaacgacaagccattccaaaatgtgaacaaagttacatatggaaaatgtcccaagtatatcagacaaaacactttaaagctggccactgggatgaggaatgtaccagaaaagcaaatcagaggaatctttggggcaatagcgggattcatcgaaaacggctgggaaggaatggttgatggatggtatgggttccgataccaaaactctgaaggaacagggcaagctgcagatctaaagagcactcaagcagccatcgaccagatcaatggaaagttaaacagagtgattgaaagaaccaatgagaaattccatcaaatagagaaggaattctcagaagtagaaggaagaattcaggacttggagaaatatgtagaagacaccaaaatagacctatggtcctacaatgcagaattgctggtggctctagaaaatcaacatacaattgacttaacagatgcagaaatgaataaattgtttgagagaactagacgcctgttaagagaaaacgcagaagacatgggaggtggatgtttcaagatttaccacaaatgtaataatgcatgcattggatcaataagaaatgggacatatgaccattacatatacagagatgaagcattaaacaaccgatttcagatcaaaggtgtagagttgaaatcaggctacaaagattggatactctggatttcattcgccatatcatgcttcttaatttgcgttgttctattgggttt------------------------------------------------------------------------------------------------------");
         test_fasta_defline(&mut fasta, 16, "KY583624{A_HA_H3}");
@@ -197,7 +198,6 @@ mod test {
 
     fn test_fasta_file(fasta_name: &str, s: usize) -> Fasta {
         let fasta = open_fasta(fasta_name).unwrap();
-
         assert_eq!(fasta.num_entries(), s);
         assert_eq!(fasta.filename(), fasta_name);
         fasta
@@ -205,15 +205,12 @@ mod test {
 
     fn test_fasta_seq(fasta: &mut Fasta, i: usize, seq: &str) {
         use std::str;
-
         let seq_orig = fasta.indexed_entry(i).sequence();
-
         assert_eq!(str::from_utf8(seq_orig).unwrap(), seq);
     }
 
     fn test_fasta_defline(fasta: &mut Fasta, i: usize, defline: &str) {
         let defline_orig = fasta.indexed_entry(i).defline();
-
         assert_eq!(defline_orig, defline);
     }
 
@@ -221,7 +218,6 @@ mod test {
     #[test]
     fn print_fasta_entry() {
         let fasta_entry = FastaEntry::new(String::from("test"), b"ATGTTTCCCTGA".to_vec(), 1);
-
         println!("{}", fasta_entry);
         println!("{:?}", fasta_entry);
         println!("{:#?}", fasta_entry);
