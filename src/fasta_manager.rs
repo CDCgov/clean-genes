@@ -111,7 +111,7 @@ impl fmt::Debug for FastaEntry {
 impl FastaEntry {
     /// Constructor for FastaEntry
     pub(crate) fn new(defline: String, sequence: Vec<u8>, entry_number: usize) -> Self {
-        //do quality check first
+        //do quality check first including looking for empty sequence
 
         FastaEntry {
             defline,
@@ -166,10 +166,8 @@ pub(crate) fn open_fasta(inp_fasta_name: &str) -> Result<Fasta, Box<dyn Error>> 
         }
     }
 
-    if !last_seq.is_empty() {
-        let this_entry = FastaEntry::new(last_defline.clone(), last_seq, entry_num);
-        this_fasta.add(this_entry);
-    }
+    let this_entry = FastaEntry::new(last_defline.clone(), last_seq.clone(), entry_num);
+    this_fasta.add(this_entry);
 
     Ok(this_fasta)
 }
@@ -193,12 +191,38 @@ pub(crate) fn remove_gaps(the_vec: &[u8]) -> Vec<u8> {
 mod test {
     use super::*;
 
+    const FASTA_NAME_1: &str = "test_data/a_ha_h3_raw_500.fna";
+
     #[test]
-    fn test_fasta_open() {
-        let fasta_name = "test_data/a_ha_h3_raw_500.fna";
+    fn test_fasta_1() {
+        let mut fasta = test_fasta_file(FASTA_NAME_1, 17);
+
+        test_fasta_defline(&mut fasta, 0, "MW585046{A_HA_H3}");
+        test_fasta_seq(&mut fasta, 0, "-----------------------------atgaagacaacca------ttattttgatactactgacccattgggcttacagtcaaaa---cccaatcaatg---acaacaacacagccacattgtgtctaggacaccatgcagtagcaaatggaacattggtaaaaacaataagtgatgatcaaattgaggtgacaaatgctacagaattagttcagagcattccaatggggaaaatatgcaacaattcgtatagaattctagat---ggaaagaattgcacattaatagatgcaatgctaggagacccccactgtgacgcctttcagtatgagaattgggacctctttatagaaagaagcagcgccttcagcaattgcta-cccatatgacatccctaactatgcatcgctccgatccattgtagcatcctcaggaacattggaattcacagcagagggattcacatggacaggtgtcactcaaaacggaagaagcggatcctgcaaaaggggatcagccgatagtttctttagccgactgaattggctaacaaaatccggaagctcttaccccacattgaatgtgacaatgcctaacaataaaaacttcgacaagctatacatctgggggatccatcacccgagctcaactaaagagcagacaaaattgtatatccaggaatcagggcgagtaacagtctcaacaaaaagaagtcaacaaacaataatccctaacattgggtctagaccatggatcagaggtcaatcaggtaggataagcatatactggaccattgtaaaacctggagatatcctaatgataaacagtaatggcaacttagttgcaccgcggggatactttaaattgaaaacagggaaaagctctgtaatgagatcagatg---tacccataga-catttgtgtgtctgaat-gtattacaccaaatggaagcatctccaacgacaagccattccaaaatgtgaacaaagttacatatggaaaatgtcccaagtatatcagacaaaacactttaaagctggccactgggatgaggaatgtaccagaaaagcaaatcagaggaatctttggggcaatagcgggattcatcgaaaacggctgggaaggaatggttgatggatggtatgggttccgataccaaaactctgaaggaacagggcaagctgcagatctaaagagcactcaagcagccatcgaccagatcaatggaaagttaaacagagtgattgaaagaaccaatgagaaattccatcaaatagagaaggaattctcagaagtagaaggaagaattcaggacttggagaaatatgtagaagacaccaaaatagacctatggtcctacaatgcagaattgctggtggctctagaaaatcaacatacaattgacttaacagatgcagaaatgaataaattgtttgagagaactagacgcctgttaagagaaaacgcagaagacatgggaggtggatgtttcaagatttaccacaaatgtaataatgcatgcattggatcaataagaaatgggacatatgaccattacatatacagagatgaagcattaaacaaccgatttcagatcaaaggtgtagagttgaaatcaggctacaaagattggatactctggatttcattcgccatatcatgcttcttaatttgcgttgttctattgggttt------------------------------------------------------------------------------------------------------");
+        test_fasta_defline(&mut fasta, 16, "KY583624{A_HA_H3}");
+        test_fasta_seq(&mut fasta, 16, "-----------------------------atgaagactatca------ttgctttgagctacattctatgtctggttttcgctcaaaaaattcctggaaatg---acaatagcacggcaacgctgtgccttgggcaccatgcagtaccaaacggaacgatagtgaaaacaatcacaaatg");
+    }
+
+    fn test_fasta_file(fasta_name: &str, s: usize) -> Fasta {
         let fasta = open_fasta(fasta_name).unwrap();
-        let num_entries = fasta.num_entries();
-        assert_eq!(num_entries, 17);
+
+        assert_eq!(fasta.num_entries(), s);
+        assert_eq!(fasta.filename(), fasta_name);
+        fasta
+    }
+
+    fn test_fasta_seq(fasta: &mut Fasta, i: usize, seq: &str) {
+        use std::str;
+
+        let seq_orig = fasta.indexed_entry(i).sequence();
+
+        assert_eq!(str::from_utf8(seq_orig).unwrap(), seq);
+    }
+
+    fn test_fasta_defline(fasta: &mut Fasta, i: usize, defline: &str) {
+        let defline_orig = fasta.indexed_entry(i).defline();
+
+        assert_eq!(defline_orig, defline);
     }
 
     #[ignore]
