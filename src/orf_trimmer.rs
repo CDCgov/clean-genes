@@ -38,7 +38,7 @@ pub(crate) fn trim_to_orf(inp_fasta: &Fasta, out_fasta: &str) -> Result<Fasta, O
     let starts = find_starts(inp_fasta, num_seqs)?;
     let group_start = find_group_start(&starts)?;
     let first_stops = find_first_stops(inp_fasta, group_start)?;
-    let group_stop = mode_vec_usize(&first_stops).ok_or( OrfTrimError::TrimFailed)?;
+    let group_stop = mode_vec_usize(&first_stops).ok_or( OrfTrimError::NoModeFound)?;
     perform_trimming(inp_fasta, group_start, group_stop, out_fasta)
 }
 
