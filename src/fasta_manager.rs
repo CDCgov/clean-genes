@@ -137,12 +137,14 @@ impl FastaEntry {
         &self.sequence
     }
 
-    /// Prints the data contained in a FastaEntry to stdout. May panic if
-    /// unexpected behavior occurs
+    /// Prints the data contained in a FastaEntry to stdout.
+    // TODO: Implement display
     pub(crate) fn print_entry(&self) {
-        println!(">{}", self.defline());
-        let sequence_string = String::from_utf8(self.sequence().clone()).unwrap();
-        println!("{}", sequence_string)
+        println!(
+            ">{header}\n{sequence}",
+            header = self.defline(),
+            sequence = String::from_utf8_lossy(self.sequence())
+        );
     }
 }
 
