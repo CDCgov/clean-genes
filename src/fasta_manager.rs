@@ -218,6 +218,7 @@ mod test {
         assert_eq!(defline_orig, defline);
     }
 
+    // TODO: convert this to a test or dispose
     #[ignore]
     #[test]
     fn print_fasta_entry() {
