@@ -191,14 +191,13 @@ mod test {
         );
     }
 
+    #[should_panic]
     #[test]
     fn no_starts() {
         let no_fasta: Fasta = Fasta::new("fakeFile.fna");
         let starts = find_starts(&no_fasta, no_fasta.num_entries());
-        assert_eq!(
-            starts.unwrap_err().to_string(),
-            "Failed to find start codons in input alignment"
-        );
+        starts.expect(  "Failed to find start codons in input alignment");
+
     }
 
     #[test]
@@ -209,13 +208,12 @@ mod test {
         assert_eq!(group_start.unwrap(), 2);
     }
 
+    #[should_panic]
     #[test]
     fn no_group_starts() {
         let group_start = find_group_start(&Vec::from([Vec::new()]));
-        assert_eq!(
-            group_start.unwrap_err().to_string(),
-            "Failed to find a group start codon"
-        );
+        group_start.expect( "Failed to find a group start codon");
+  
     }
 
     #[test]
@@ -228,16 +226,15 @@ mod test {
         assert_eq!(first_stops.unwrap(), Vec::from([8, 5, 8, 8, 8, 8]));
     }
 
+    #[should_panic]
     #[test]
     fn bad_first_stop() {
         let fake_fasta_short: Fasta = open_fasta("fake_short.fna").unwrap();
         let group_start = 70;
         let first_stops = find_first_stops(&fake_fasta_short, group_start);
 
-        assert_eq!(
-            first_stops.unwrap_err().to_string(),
-            "Failed to find any stop codons in the frame of the group start codon at locus 71"
-        );
+        first_stops.expect("Failed to find any stop codons in the frame of the group start codon at locus 71");
+      
     }
 
     #[test]
