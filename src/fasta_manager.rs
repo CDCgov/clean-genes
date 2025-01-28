@@ -148,6 +148,8 @@ impl FastaEntry {
     }
 }
 
+// TODO: Fix this lint
+#[allow(clippy::manual_strip)]
 /// Reads a fasta file and stores it in a Fasta object.
 pub(crate) fn open_fasta(inp_fasta_name: &str) -> Result<Fasta, Box<dyn Error>> {
     let contents = fs::read_to_string(inp_fasta_name)?;
