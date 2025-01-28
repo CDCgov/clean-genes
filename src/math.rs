@@ -29,12 +29,10 @@ mod test {
     }
 
     #[test]
+    #[should_panic]
     fn no_mode() {
         let the_list: Vec<usize> = Vec::new();
         let mode = mode_vec_usize(&the_list);
-        assert_eq!(
-            mode.unwrap().to_string(),
-            "Failed to calculate mode: input list is empty"
-        );
+        mode.expect("Failed to calculate mode: input list is empty");
     }
 }
