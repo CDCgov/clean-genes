@@ -1,4 +1,4 @@
-use std::{error::Error, fmt, fs};
+use std::{fmt, fs};
 
 ///Represents a fasta file. contains a filename and a vector of FastaEntrys
 pub(crate) struct Fasta {
@@ -151,7 +151,7 @@ impl FastaEntry {
 // TODO: Fix this lint
 #[allow(clippy::manual_strip)]
 /// Reads a fasta file and stores it in a Fasta object.
-pub(crate) fn open_fasta(inp_fasta_name: &str) -> Result<Fasta, Box<dyn Error>> {
+pub(crate) fn open_fasta(inp_fasta_name: &str) -> Result<Fasta, std::io::Error> {
     let contents = fs::read_to_string(inp_fasta_name)?;
 
     let mut this_fasta = Fasta::new(inp_fasta_name);
