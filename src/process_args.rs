@@ -1,5 +1,4 @@
 use clap::Parser;
-use std::error::Error;
 use std::path::Path;
 
 /// Contains the parameters set by all user arguments into clean-genes
