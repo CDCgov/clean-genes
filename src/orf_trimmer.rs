@@ -1,3 +1,6 @@
+#![allow(clippy::allow_attributes)]
+#![allow(clippy::should_panic_without_expect)]
+
 use crate::fasta_manager::{Fasta, FastaEntry};
 use crate::math::mode_vec_usize;
 use std::collections::HashMap;
@@ -30,7 +33,7 @@ impl fmt::Display for OrfTrimError {
 
 impl std::error::Error for OrfTrimError {}
 
-/// The main functon of the TrimToORF module. Takes a Fasta object as input and
+/// The main functon of the `TrimToORF` module. Takes a Fasta object as input and
 /// returns a Fasta object trimmed to what is determined to be the group start
 /// and stop codons
 pub(crate) fn trim_to_orf(inp_fasta: &Fasta, out_fasta: &str) -> Result<Fasta, OrfTrimError> {
@@ -168,7 +171,7 @@ fn perform_trimming(
 
 #[allow(unused_imports)]
 mod test {
-    use super::*;
+    use super::{find_starts, find_group_start, find_first_stops, trim_to_orf};
     use crate::fasta_manager::{open_fasta, Fasta};
 
     #[test]

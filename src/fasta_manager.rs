@@ -1,6 +1,6 @@
 use std::{fmt, fs};
 
-///Represents a fasta file. contains a filename and a vector of FastaEntrys
+///Represents a fasta file. contains a filename and a vector of `FastaEntry`
 pub(crate) struct Fasta {
     filename: String,
     data: Vec<FastaEntry>,
@@ -20,17 +20,17 @@ impl Fasta {
         &self.filename
     }
 
-    /// Add a FastaEntry to this Fasta
+    /// Add a `FastaEntry` to this Fasta
     pub(crate) fn add(&mut self, new_entry: FastaEntry) {
         self.data.push(new_entry);
     }
 
-    /// Returns the number of FastaEntrys in this Fasta
+    /// Returns the number of `FastaEntry` in this Fasta
     pub(crate) fn num_entries(&self) -> usize {
         self.data.len()
     }
 
-    /// Returns a specific FastaEntry using its position in the data vector.
+    /// Returns a specific `FastaEntry` using its position in the data vector.
     /// Position starts with 0.
     pub(crate) fn indexed_entry(&self, num_entry: usize) -> &FastaEntry {
         &self.data[num_entry]
@@ -54,7 +54,7 @@ impl fmt::Debug for Fasta {
     }
 }
 
-/// Allows iteration through the FastaEntrys in Fasta
+/// Allows iteration through the `FastaEntry` in Fasta
 impl IntoIterator for Fasta {
     type Item = FastaEntry; // The type of items we are iterating over
     type IntoIter = std::vec::IntoIter<FastaEntry>; // The iterator type
@@ -64,7 +64,7 @@ impl IntoIterator for Fasta {
     }
 }
 
-/// Allows iteration thorugh the FastaEntrys in &Fasta
+/// Allows iteration thorugh the `FastaEntry` in &Fasta
 impl<'a> IntoIterator for &'a Fasta {
     type Item = &'a FastaEntry;
     type IntoIter = std::slice::Iter<'a, FastaEntry>;
@@ -82,7 +82,7 @@ pub(crate) struct FastaEntry {
     entry_number: usize,
 }
 
-/// Allows simple display for FastaEntry. Shows only the defline and the
+/// Allows simple display for `FastaEntry`. Shows only the defline and the
 /// position number of the entry in the Fasta. Position numbers start at 0.
 impl fmt::Display for FastaEntry {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -94,11 +94,11 @@ impl fmt::Display for FastaEntry {
     }
 }
 
-/// Allows detailed display for FastaEntry. Displays sequence as a String rather
+/// Allows detailed display for `FastaEntry`. Displays sequence as a String rather
 /// than a vector of u8s, which is how it is stored in clean-genes
 impl fmt::Debug for FastaEntry {
     fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let sequence_string = String::from_utf8(self.sequence().clone())
+        let sequence_string = String::from_utf8(self.sequence.clone())
             .unwrap_or_else(|_| "Invalid UTF-8 in fasta entry".to_string());
 
         fmt.debug_struct("Fasta")
@@ -110,7 +110,7 @@ impl fmt::Debug for FastaEntry {
 }
 
 impl FastaEntry {
-    /// Constructor for FastaEntry
+    /// Constructor for `FastaEntry`
     pub(crate) fn new(defline: String, sequence: Vec<u8>, entry_number: usize) -> Self {
         //do quality check first including looking for empty sequence
 
@@ -121,23 +121,23 @@ impl FastaEntry {
         }
     }
 
-    /// Returns the defline of this FastaEntry
+    /// Returns the defline of this `FastaEntry`
     pub(crate) fn defline(&self) -> String {
         self.defline.clone()
     }
 
-    /// Returns the position of this FastaEntry in the Fasta's data vector.
+    /// Returns the position of this `FastaEntry` in the Fasta's data vector.
     /// positions start at 0.
     pub(crate) fn entry_num(&self) -> usize {
         self.entry_number
     }
 
-    /// Returns the sequence associated with this FastaEntry
+    /// Returns the sequence associated with this `FastaEntry`
     pub(crate) fn sequence(&self) -> &Vec<u8> {
         &self.sequence
     }
 
-    /// Prints the data contained in a FastaEntry to stdout.
+    /// Prints the data contained in a `FastaEntry` to stdout.
     // TODO: Implement display
     pub(crate) fn print_entry(&self) {
         println!(
@@ -148,8 +148,6 @@ impl FastaEntry {
     }
 }
 
-// TODO: Fix this lint
-#[allow(clippy::manual_strip)]
 /// Reads a fasta file and stores it in a Fasta object.
 pub(crate) fn open_fasta(inp_fasta_name: &str) -> Result<Fasta, std::io::Error> {
     let contents = fs::read_to_string(inp_fasta_name)?;
@@ -166,7 +164,9 @@ pub(crate) fn open_fasta(inp_fasta_name: &str) -> Result<Fasta, std::io::Error> 
                 last_seq.clear();
                 entry_num += 1;
             }
-            last_defline = String::from(&line[1..]);
+            if let Some(suffix) = line.strip_prefix(">") {
+                last_defline = String::from(suffix);
+            }
         } else {
             last_seq.extend(line.as_bytes());
         }
@@ -185,9 +185,8 @@ pub(crate) fn write_fasta(fasta_obj: &Fasta) {
     }
 }
 
-#[allow(unused_imports)]
 mod test {
-    use super::*;
+    use super::{open_fasta, Fasta};
 
     const FASTA_NAME_1: &str = "test_data/a_ha_h3_raw_500.fna";
 
@@ -216,15 +215,5 @@ mod test {
     fn test_fasta_defline(fasta: &mut Fasta, i: usize, defline: &str) {
         let defline_orig = fasta.indexed_entry(i).defline();
         assert_eq!(defline_orig, defline);
-    }
-
-    // TODO: convert this to a test or dispose
-    #[ignore]
-    #[test]
-    fn print_fasta_entry() {
-        let fasta_entry = FastaEntry::new(String::from("test"), b"ATGTTTCCCTGA".to_vec(), 1);
-        println!("{}", fasta_entry);
-        println!("{:?}", fasta_entry);
-        println!("{:#?}", fasta_entry);
     }
 }

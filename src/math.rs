@@ -1,3 +1,4 @@
+#![allow(clippy::should_panic_without_expect)]
 use std::collections::HashMap;
 
 /// Calculates the mathematical mode of a vector of usizes.
@@ -16,7 +17,7 @@ pub(crate) fn mode_vec_usize(list: &Vec<usize>) -> Option<usize> {
     Some(mode)
 }
 
-#[allow(unused_imports)]
+#[expect(unused_imports)]
 mod test {
     use super::*;
     use crate::fasta_manager::{open_fasta, Fasta};
