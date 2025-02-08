@@ -138,7 +138,6 @@ impl FastaEntry {
     }
 
     /// Prints the data contained in a `FastaEntry` to stdout.
-    // TODO: Implement display
     pub(crate) fn print_entry(&self) {
         println!(
             ">{header}\n{sequence}",
