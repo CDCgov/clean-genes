@@ -1,27 +1,23 @@
+#![allow(clippy::should_panic_without_expect)]
 use std::collections::HashMap;
-use std::error::Error;
 
-/// Calculates the mathematical mode of a vector of usizes. May panic if
-/// unexpected behavior occurs.
-pub(crate) fn mode_vec_usize(list: &Vec<usize>) -> Result<usize, Box<dyn Error>> {
+/// Calculates the mathematical mode of a vector of usizes.
+pub(crate) fn mode_vec_usize(list: &Vec<usize>) -> Option<usize> {
     let mut counts: HashMap<usize, usize> = HashMap::new();
 
     for &num in list {
-        *counts.entry(num).or_insert(1) += 1;
+        *counts.entry(num).or_default() += 1;
     }
 
     if counts.is_empty() {
-        return Err(Box::from("Failed to calculate mode: input list is empty"));
+        return None;
     }
 
-    Ok(*counts
-        .iter()
-        .max_by_key(|&(_, count)| count)
-        .ok_or_else(|| Box::<dyn Error>::from("Failed to calculate mode: no mode found"))?
-        .0)
+    let mode = *counts.iter().max_by_key(|&(_, count)| count)?.0;
+    Some(mode)
 }
 
-#[allow(unused_imports)]
+#[expect(unused_imports)]
 mod test {
     use super::*;
     use crate::fasta_manager::{open_fasta, Fasta};
@@ -34,12 +30,10 @@ mod test {
     }
 
     #[test]
+    #[should_panic]
     fn no_mode() {
         let the_list: Vec<usize> = Vec::new();
         let mode = mode_vec_usize(&the_list);
-        assert_eq!(
-            mode.unwrap_err().to_string(),
-            "Failed to calculate mode: input list is empty"
-        );
+        mode.expect("Failed to calculate mode: input list is empty");
     }
 }

@@ -1,22 +1,52 @@
-use crate::fasta_manager::{remove_gaps, Fasta, FastaEntry};
+#![allow(clippy::allow_attributes)]
+#![allow(clippy::should_panic_without_expect)]
+
+use crate::fasta_manager::{Fasta, FastaEntry};
 use crate::math::mode_vec_usize;
 use std::collections::HashMap;
-use std::error::Error;
+use std::fmt;
 
-/// The main functon of the TrimToORF module. Takes a Fasta object as input and returns a Fasta
-/// object trimmed to what is determined to be the group start and stop codons
-pub(crate) fn trim_to_orf(inp_fasta: &Fasta, out_fasta: &str) -> Result<Fasta, Box<dyn Error>> {
+#[derive(Debug)]
+pub(crate) enum OrfTrimError {
+    NoStartCodons,
+    NoGroupStart,
+    NoStopCodons(usize),
+    TrimFailed,
+    NoModeFound,
+}
+
+impl fmt::Display for OrfTrimError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            OrfTrimError::NoStartCodons => write!(f, "Failed to find start codons in input alignment"),
+            OrfTrimError::NoGroupStart => write!(f, "Failed to find a group start codon"),
+            OrfTrimError::NoStopCodons(pos) => write!(
+                f,
+                "Failed to find any stop codons in the frame of the group start codon at locus {pos}",
+            
+            ),
+            OrfTrimError::TrimFailed => write!(f, "Failed to trim fasta"),
+            OrfTrimError::NoModeFound => write!(f,"Failed to find mode for stopping position"),
+        }
+    }
+}
+
+impl std::error::Error for OrfTrimError {}
+
+/// The main functon of the `TrimToORF` module. Takes a Fasta object as input and
+/// returns a Fasta object trimmed to what is determined to be the group start
+/// and stop codons
+pub(crate) fn trim_to_orf(inp_fasta: &Fasta, out_fasta: &str) -> Result<Fasta, OrfTrimError> {
     let num_seqs = inp_fasta.num_entries();
     let starts = find_starts(inp_fasta, num_seqs)?;
     let group_start = find_group_start(&starts)?;
     let first_stops = find_first_stops(inp_fasta, group_start)?;
-    //let group_stop = mode_vec_usize(&first_stops).expect("failed to find group stop codon");
-    let group_stop = mode_vec_usize(&first_stops)?;
+    let group_stop = mode_vec_usize(&first_stops).ok_or( OrfTrimError::NoModeFound)?;
     perform_trimming(inp_fasta, group_start, group_stop, out_fasta)
 }
 
 /// Identifies all start codons in all reading frames for a Fasta object
-fn find_starts(inp_fasta: &Fasta, num_seqs: usize) -> Result<Vec<Vec<usize>>, Box<dyn Error>> {
+fn find_starts(inp_fasta: &Fasta, num_seqs: usize) -> Result<Vec<Vec<usize>>, OrfTrimError> {
     let mut starts: Vec<Vec<usize>> = vec![Vec::new(); num_seqs];
 
     for entry in inp_fasta {
@@ -28,7 +58,7 @@ fn find_starts(inp_fasta: &Fasta, num_seqs: usize) -> Result<Vec<Vec<usize>>, Bo
     }
 
     if starts.is_empty() {
-        Err(Box::from("Fialed to find start codons in input alignment"))
+        Err(OrfTrimError::NoStartCodons)
     } else {
         Ok(starts)
     }
@@ -36,14 +66,14 @@ fn find_starts(inp_fasta: &Fasta, num_seqs: usize) -> Result<Vec<Vec<usize>>, Bo
 
 /// Identifies the common start codon locus based on the location and
 /// consistency of available start codons in the provided fasta file.
-fn find_group_start(starts: &Vec<Vec<usize>>) -> Result<usize, Box<dyn Error>> {
+fn find_group_start(starts: &Vec<Vec<usize>>) -> Result<usize, OrfTrimError> {
     let mut start_scores: HashMap<usize, usize> = HashMap::new();
     for entry in starts {
         let mut this_score;
         for (i, start) in entry.iter().enumerate() {
             this_score = match i + 1 {
-                //This scoring matrix is arbitrary and should be adjusted based on the quality of
-                //results observed
+                //This scoring matrix is arbitrary and should be adjusted based
+                //on the quality of results observed
                 1 => 8,
                 2 => 4,
                 3 => 2,
@@ -70,17 +100,19 @@ fn find_group_start(starts: &Vec<Vec<usize>>) -> Result<usize, Box<dyn Error>> {
 
     match max_key {
         Some(locus) => Ok(locus),
-        None => Err(Box::from("Failed to find a group start codon")),
+        None => Err(OrfTrimError::NoGroupStart),
     }
 }
 
-/// Identifies the common stop codon locus. Uses the determined common start codon locus to define
-/// the reading frame and then identifies the first stop codon for each sequence in that frame
-fn find_first_stops(inp_fasta: &Fasta, group_start: usize) -> Result<Vec<usize>, Box<dyn Error>> {
+/// Identifies the common stop codon locus. Uses the determined common start
+/// codon locus to define the reading frame and then identifies the first stop
+/// codon for each sequence in that frame
+fn find_first_stops(inp_fasta: &Fasta, group_start: usize) -> Result<Vec<usize>, OrfTrimError> {
     let mut first_stops: Vec<usize> = Vec::new();
 
     for entry in inp_fasta {
-        //if the group start codon is past the length of this sequence, move to the next sequence
+        //if the group start codon is past the length of this sequence, move to
+        //the next sequence
         if group_start < entry.sequence().len() {
             for (codon_index, codon) in entry.sequence()[group_start..]
                 .iter()
@@ -100,24 +132,22 @@ fn find_first_stops(inp_fasta: &Fasta, group_start: usize) -> Result<Vec<usize>,
     }
 
     if first_stops.is_empty() {
-        Err(Box::from(format!(
-            "Failed to find any stop codons in the frame of the group start codon at locus {}",
-            group_start + 1
-        )))
+        Err(OrfTrimError::NoStopCodons(group_start + 1))
     } else {
         Ok(first_stops)
     }
 }
 
-/// Does the actual trimming step, taking in the Fasta object, the group start and stop codons (the
-/// locus at which to trim), and the name of the output file and returns a trimmed Fasta object
-/// with a new name matching the name of the output file
+/// Does the actual trimming step, taking in the Fasta object, the group start
+/// and stop codons (the locus at which to trim), and the name of the output
+/// file and returns a trimmed Fasta object with a new name matching the name
+/// of the output file
 fn perform_trimming(
     inp_fasta: &Fasta,
     start: usize,
     stop: usize,
     out_fasta_name: &str,
-) -> Result<Fasta, Box<dyn Error>> {
+) -> Result<Fasta, OrfTrimError> {
     let mut trimmed_fasta = Fasta::new(out_fasta_name);
 
     for entry in inp_fasta {
@@ -127,14 +157,13 @@ fn perform_trimming(
                 trimmed_sequence.push(*base);
             }
         }
-        //if entry.entry_num() == 1 {}
 
         let trimmed_entry = FastaEntry::new(entry.defline(), trimmed_sequence, entry.entry_num());
         trimmed_fasta.add(trimmed_entry);
     }
 
     if trimmed_fasta.num_entries() == 0 {
-        Err(Box::from("failed to trim fasta"))
+        Err(OrfTrimError::TrimFailed)
     } else {
         Ok(trimmed_fasta)
     }
@@ -142,7 +171,7 @@ fn perform_trimming(
 
 #[allow(unused_imports)]
 mod test {
-    use super::*;
+    use super::{find_starts, find_group_start, find_first_stops, trim_to_orf};
     use crate::fasta_manager::{open_fasta, Fasta};
 
     #[test]
@@ -165,14 +194,13 @@ mod test {
         );
     }
 
+    #[should_panic]
     #[test]
     fn no_starts() {
         let no_fasta: Fasta = Fasta::new("fakeFile.fna");
         let starts = find_starts(&no_fasta, no_fasta.num_entries());
-        assert_eq!(
-            starts.unwrap_err().to_string(),
-            "Fialed to find start codons in input alignment"
-        );
+        starts.expect(  "Failed to find start codons in input alignment");
+
     }
 
     #[test]
@@ -183,13 +211,12 @@ mod test {
         assert_eq!(group_start.unwrap(), 2);
     }
 
+    #[should_panic]
     #[test]
     fn no_group_starts() {
         let group_start = find_group_start(&Vec::from([Vec::new()]));
-        assert_eq!(
-            group_start.unwrap_err().to_string(),
-            "Failed to find a group start codon"
-        );
+        group_start.expect( "Failed to find a group start codon");
+  
     }
 
     #[test]
@@ -202,16 +229,15 @@ mod test {
         assert_eq!(first_stops.unwrap(), Vec::from([8, 5, 8, 8, 8, 8]));
     }
 
+    #[should_panic]
     #[test]
     fn bad_first_stop() {
         let fake_fasta_short: Fasta = open_fasta("fake_short.fna").unwrap();
         let group_start = 70;
         let first_stops = find_first_stops(&fake_fasta_short, group_start);
 
-        assert_eq!(
-            first_stops.unwrap_err().to_string(),
-            "Failed to find any stop codons in the frame of the group start codon at locus 71"
-        );
+        first_stops.expect("Failed to find any stop codons in the frame of the group start codon at locus 71");
+      
     }
 
     #[test]

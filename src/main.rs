@@ -32,11 +32,11 @@ fn main() {
         let out_fasta = match trim_to_orf(&inp_fasta, args.out_fasta()) {
             Ok(success_fasta) => success_fasta,
             Err(err) => {
-                eprintln!("\nFailed to trim to ORF, producing the error: '{}'\n", err);
+                eprintln!("\nFailed to trim to ORF, producing the error: '{err}'\n");
                 process::exit(1);
             }
         };
 
-        write_fasta(&out_fasta)
+        write_fasta(&out_fasta);
     }
 }
