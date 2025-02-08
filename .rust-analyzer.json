@@ -1,0 +1,13 @@
+{
+    "checkOnSave": {
+        "command": "clippy",
+        "allTargets": true,
+        "features": "all"
+    },
+    "diagnostics": {
+        "enable": true,
+        "linting": {
+            "clippy_preference": "pedantic"
+        }
+    }
+}
