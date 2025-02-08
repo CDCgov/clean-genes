@@ -1,6 +1,6 @@
 [package]
 name = "clean-genes"
-version = "0.2.5"
+version = "0.2.6"
 edition = "2021"
 
 
@@ -10,6 +10,8 @@ dead_code = "allow"
 
 [lints.clippy]
 all = "warn"
+pedantic = "warn"
+allow_attributes = "warn"
 
 [dependencies]
-clap = { version = "4.5.23", features = ["derive"] }
+clap = { version = "4.5.27", features = ["derive"] }

@@ -66,7 +66,7 @@ fn validate_modules(module: &str) -> Result<String, String> {
     if module.is_empty() {
         Err(String::from("Module name cannot be empty"))
     } else if !["TrimToORF", "placeholder"].contains(&module) {
-        Err(format!("'{}' not a known module", module))
+        Err(format!("'{module}' not a known module"))
     } else {
         Ok(module.to_string())
     }
@@ -117,7 +117,7 @@ mod test {
     fn bad_module() {
         let test_module = "NotAModule";
         let result = validate_modules(test_module);
-        assert_eq!(result, Err(format!("'{}' not a known module", test_module)));
+        assert_eq!(result, Err(format!("'{test_module}' not a known module")));
     }
 
     #[test]
