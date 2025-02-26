@@ -14,7 +14,7 @@ use std::path::Path;
         \nDescription: {about-with-newline}\
         Version: {version}\
         \nAuthors: {author-with-newline}\
-        \n{usage-heading} {usage}\
+        \n{usage-heading} {usage} > <OUT_FASTA>\
         \n{all-args}\
         {after-help}"
 )]
@@ -22,11 +22,6 @@ pub struct Config {
     #[arg(short, long, help = "Input Fasta file",
     value_parser = validate_filename)]
     inp_fasta: String,
-
-    #[arg(short, long, help = "Output Fasta file", 
-        default_value_t = String::from("./output.fasta"),
-    value_parser = validate_out_fasta)]
-    out_fasta: String,
 
     #[arg(short, long, help = "The selected module(s)",
     value_parser = validate_modules)]
@@ -42,11 +37,6 @@ impl Config {
     /// Returns a reference the name of the input fasta file
     pub(crate) fn inp_fasta(&self) -> &str {
         &self.inp_fasta
-    }
-
-    /// Returns a reference to the name of teh output fasta file
-    pub(crate) fn out_fasta(&self) -> &str {
-        &self.out_fasta
     }
 }
 
@@ -69,15 +59,6 @@ fn validate_modules(module: &str) -> Result<String, String> {
         Err(format!("'{module}' not a known module"))
     } else {
         Ok(module.to_string())
-    }
-}
-
-/// Conifirms that an output filename was provided
-fn validate_out_fasta(name: &str) -> Result<String, String> {
-    if name.is_empty() {
-        Err(String::from("Filename cannot be empty"))
-    } else {
-        Ok(name.to_string())
     }
 }
 

@@ -29,7 +29,7 @@ fn main() {
             }
         };
 
-        let out_fasta = match trim_to_orf(&inp_fasta, args.out_fasta()) {
+        let out_fasta = match trim_to_orf(&inp_fasta, "output.fasta") {
             Ok(success_fasta) => success_fasta,
             Err(err) => {
                 eprintln!("\nFailed to trim to ORF, producing the error: '{err}'\n");
