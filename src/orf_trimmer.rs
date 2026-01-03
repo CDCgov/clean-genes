@@ -145,13 +145,15 @@ fn find_first_stops(inp_fasta: &Fasta, group_start: usize) -> Result<Vec<usize>,
 fn perform_trimming(
     inp_fasta: &Fasta,
     start: usize,
-    stop: usize,
+    starting_stop: usize,
     out_fasta_name: &str,
 ) -> Result<Fasta, OrfTrimError> {
     let mut trimmed_fasta = Fasta::new(out_fasta_name);
 
     for entry in inp_fasta {
         let mut trimmed_sequence: Vec<u8> = Vec::new();
+        let stop = adjust_stop(&entry.sequence(), starting_stop);
+
         for (i, base) in entry.sequence().iter().enumerate() {
             if i >= start && i < stop + 3 {
                 trimmed_sequence.push(*base);
@@ -166,6 +168,42 @@ fn perform_trimming(
         Err(OrfTrimError::TrimFailed)
     } else {
         Ok(trimmed_fasta)
+    }
+}
+
+
+/// Check to see if the stop codon contains a gap, in order to prevent
+/// TrimToORF producing a truncated stop codon by adjusting "stop" on
+/// the fly. If stop codon region would be complete without the presence of
+/// gaps, adjust "stop" to return the sequence up to the new stop region with
+/// gaps. If the sequence itself is truncated and the stop codon cannot be
+/// completed, allow stop region to include a gap
+fn adjust_stop(this_seq: &Vec<u8>, starting_stop: usize) -> usize {
+    if starting_stop + 3 > this_seq.len() {
+        return starting_stop;
+    }
+
+    let putative_stop_seq = &this_seq[starting_stop..starting_stop+3];
+    if putative_stop_seq.contains(&45) {
+        let starting_stop_to_end_seq = &this_seq[starting_stop..];
+
+        let mut gap_cnt: usize = 0;
+        let mut new_stop_seq = vec![];
+        for base in starting_stop_to_end_seq {
+            if *base == 45 {
+                gap_cnt += 1;
+            } else {
+                new_stop_seq.push(*base);
+                if new_stop_seq.len() == 3 && matches!(new_stop_seq.as_slice(), 
+                    b"TAG" | b"TGA" | b"TAA" | b"UAG" | b"UGA" | b"UAA") {
+                    return starting_stop + gap_cnt
+                }
+            }
+        }
+
+        starting_stop
+    } else {
+        starting_stop
     }
 }
 
@@ -255,6 +293,35 @@ mod test {
                 6 => assert_eq!(entry.sequence(), b"ATGKSMTAA"),
                 7 => assert_eq!(entry.sequence(), b"NNNNNNNNN"),
                 8 => assert_eq!(entry.sequence(), b"GNG--TTGA"),
+                _ => panic!(),
+            }
+        }
+    }
+
+    #[test]
+    fn full_trim_small_stop_gap() {
+        let fake_fasta_short_stop_gap: Fasta = open_fasta("test_data/fake_short_stop_gap.fna").unwrap();
+        let trimmed_fasta = trim_to_orf(&fake_fasta_short_stop_gap, "./output.fasta").unwrap();
+        for entry in &trimmed_fasta {
+            match entry.entry_num() {
+                0 => assert_eq!(entry.sequence(), b"ATGATGTA--G"),
+                1 => assert_eq!(entry.sequence(), b"ATGATGTA--G"),
+                2 => assert_eq!(entry.sequence(), b"ATGATGTA--G"),
+                3 => assert_eq!(entry.sequence(), b"ATGATGTA--G"),
+                4 => assert_eq!(entry.sequence(), b"ATGTGATAA"),
+                5 => assert_eq!(entry.sequence(), b"ATGTGATAA"),
+                6 => assert_eq!(entry.sequence(), b"ATG--ATGA"),
+                7 => assert_eq!(entry.sequence(), b"ATG--ATG-"),
+                8 => assert_eq!(entry.sequence(), b"ATGTGAT-A-A"),
+                9 => assert_eq!(entry.sequence(), b"ATGTGAT--AA"),
+                10 => assert_eq!(entry.sequence(), b"ATGTGA--TAA"),
+                11 => assert_eq!(entry.sequence(), b"ATGTGA--T"),
+                12 => assert_eq!(entry.sequence(), b"atgatgtag"),
+                13 => assert_eq!(entry.sequence(), b"atGAtGTAG"),
+                14 => assert_eq!(entry.sequence(), b"ATGWKDTAG"),
+                15 => assert_eq!(entry.sequence(), b"ATGKSMTAA"),
+                16 => assert_eq!(entry.sequence(), b"NNNNNNNNN"),
+                17 => assert_eq!(entry.sequence(), b"GNG--TTGA"),
                 _ => panic!(),
             }
         }
