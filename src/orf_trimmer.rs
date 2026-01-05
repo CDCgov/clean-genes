@@ -151,7 +151,6 @@ fn perform_trimming(
     let mut trimmed_fasta = Fasta::new(out_fasta_name);
 
     for entry in inp_fasta {
-        dbg!(entry);
         let mut trimmed_sequence: Vec<u8> = Vec::new();
         let stop = adjust_stop(&entry.sequence(), starting_stop);
 
@@ -160,11 +159,8 @@ fn perform_trimming(
                 trimmed_sequence.push(*base);
             }
         }
-        dbg!(starting_stop);
-        dbg!(stop);
 
         let trimmed_entry = FastaEntry::new(entry.defline(), trimmed_sequence, entry.entry_num());
-        dbg!(&trimmed_entry);
         trimmed_fasta.add(trimmed_entry);
     }
 
@@ -188,15 +184,11 @@ fn adjust_stop(this_seq: &Vec<u8>, starting_stop: usize) -> usize {
     }
 
     let putative_stop_seq = &this_seq[starting_stop..starting_stop+3];
-    //dbg!(this_seq);
-    //dbg!(putative_stop_seq);
     if putative_stop_seq.contains(&45) {
         let starting_stop_to_end_seq = &this_seq[starting_stop..];
-        //dbg!(starting_stop_to_end_seq);
         let mut gap_cnt: usize = 0;
         let mut new_stop_seq = vec![];
         for base in starting_stop_to_end_seq {
-            //dbg!(&new_stop_seq);
             if *base == 45 {
                 gap_cnt += 1;
             } else {
